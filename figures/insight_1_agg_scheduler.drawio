@@ -1,0 +1,206 @@
+<mxfile host="Electron" version="29.3.0">
+  <diagram name="Aggregated Serving Timeline" id="agg-scheduler-timeline">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#333333;" value="Aggregated Serving: vLLM Scheduler Timeline" vertex="1">
+          <mxGeometry x="200" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Subtitle / context -->
+        <mxCell id="subtitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" value="Each scheduler iteration processes a token budget of 8192 tokens. Prefill is chunked across iterations." vertex="1">
+          <mxGeometry x="200" y="58" width="800" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Timeline arrow -->
+        <mxCell id="timeline-arrow" parent="1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#999999;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="60" y="170" as="sourcePoint" />
+            <mxPoint x="1160" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="timeline-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#999999;" value="Time →" vertex="1">
+          <mxGeometry x="1100" y="155" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ITERATION 1 ========== -->
+        <mxCell id="iter1-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" value="Iteration 1" vertex="1">
+          <mxGeometry x="80" y="100" width="190" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 1 container outline -->
+        <mxCell id="iter1-outline" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="80" y="190" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 1: Prefill Chunk 1 (large blue block) -->
+        <mxCell id="iter1-prefill" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="Prefill Chunk 1&lt;br&gt;&lt;font style=&quot;font-size:9px;font-weight:normal&quot;&gt;(8064 tokens)&lt;/font&gt;" vertex="1">
+          <mxGeometry x="85" y="195" width="157" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 1: Decode sliver (tiny orange block) -->
+        <mxCell id="iter1-decode" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;" value="D" vertex="1">
+          <mxGeometry x="242" y="195" width="23" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ITERATION 2 ========== -->
+        <mxCell id="iter2-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" value="Iteration 2" vertex="1">
+          <mxGeometry x="290" y="100" width="190" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 2 container outline -->
+        <mxCell id="iter2-outline" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="290" y="190" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 2: Prefill Chunk 2 (large blue block) -->
+        <mxCell id="iter2-prefill" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="Prefill Chunk 2&lt;br&gt;&lt;font style=&quot;font-size:9px;font-weight:normal&quot;&gt;(8064 tokens)&lt;/font&gt;" vertex="1">
+          <mxGeometry x="295" y="195" width="157" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 2: Decode sliver (tiny orange block) -->
+        <mxCell id="iter2-decode" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;" value="D" vertex="1">
+          <mxGeometry x="452" y="195" width="23" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ITERATION 3 ========== -->
+        <mxCell id="iter3-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" value="Iteration 3" vertex="1">
+          <mxGeometry x="500" y="100" width="190" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 3 container outline -->
+        <mxCell id="iter3-outline" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="500" y="190" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 3: All decode (orange block) -->
+        <mxCell id="iter3-decode" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="Decode Only" vertex="1">
+          <mxGeometry x="505" y="195" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ITERATION 4 ========== -->
+        <mxCell id="iter4-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" value="Iteration 4" vertex="1">
+          <mxGeometry x="710" y="100" width="190" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 4 container outline -->
+        <mxCell id="iter4-outline" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="710" y="190" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 4: All decode (orange block) -->
+        <mxCell id="iter4-decode" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="Decode Only" vertex="1">
+          <mxGeometry x="715" y="195" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ITERATION 5 ========== -->
+        <mxCell id="iter5-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" value="Iteration 5" vertex="1">
+          <mxGeometry x="920" y="100" width="190" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 5 container outline -->
+        <mxCell id="iter5-outline" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="920" y="190" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Iteration 5: All decode (orange block) -->
+        <mxCell id="iter5-decode" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="Decode Only" vertex="1">
+          <mxGeometry x="925" y="195" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== TTFT ANNOTATION ========== -->
+        <!-- Red vertical arrow pointing down at end of Iteration 2 -->
+        <mxCell id="ttft-arrow" parent="1" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#FF0000;dashed=0;fillColor=#FF0000;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="480" y="130" as="sourcePoint" />
+            <mxPoint x="480" y="185" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ttft-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#FF0000;" value="TTFT ← Prefill completes here" vertex="1">
+          <mxGeometry x="380" y="125" width="220" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Bracket under iterations 1-2 showing "Prefill Phase" -->
+        <mxCell id="prefill-phase-bracket" parent="1" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;flipH=0;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;size=0.5;rotation=-90;strokeColor=#4472C4;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#4472C4;" value="" vertex="1">
+          <mxGeometry x="215" y="247" width="30" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill-phase-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#4472C4;" value="Prefill Phase (chunked)" vertex="1">
+          <mxGeometry x="180" y="290" width="190" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Bracket under iterations 3-5 showing "Decode Phase" -->
+        <mxCell id="decode-phase-bracket" parent="1" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;flipH=0;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;size=0.5;rotation=-90;strokeColor=#ED7D31;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#ED7D31;" value="" vertex="1">
+          <mxGeometry x="610" y="247" width="30" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-phase-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#ED7D31;" value="Decode Phase" vertex="1">
+          <mxGeometry x="620" y="290" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ========== TOKEN BUDGET LABEL ========== -->
+        <mxCell id="budget-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#666666;" value="Token Budget per Iteration: 8192 tokens" vertex="1">
+          <mxGeometry x="350" y="330" width="300" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ========== DECODE SLIVER CALLOUT ========== -->
+        <!-- Callout line from decode sliver in Iteration 1 -->
+        <mxCell id="decode-callout-arrow" parent="1" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#C55A11;dashed=1;dashPattern=4 4;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="253" y="270" as="sourcePoint" />
+            <mxPoint x="253" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="decode-callout-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#C55A11;" value="128 tokens&#10;(1.6% of budget)" vertex="1">
+          <mxGeometry x="195" y="340" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LEGEND ========== -->
+        <mxCell id="legend-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="80" y="400" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#333333;" value="Legend" vertex="1">
+          <mxGeometry x="90" y="405" width="60" height="20" as="geometry" />
+        </mxCell>
+        <!-- Legend: Prefill swatch -->
+        <mxCell id="legend-prefill-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="95" y="430" width="30" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-prefill-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="Prefill tokens (chunked)" vertex="1">
+          <mxGeometry x="130" y="428" width="140" height="20" as="geometry" />
+        </mxCell>
+        <!-- Legend: Decode swatch -->
+        <mxCell id="legend-decode-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ED7D31;strokeColor=#C55A11;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="95" y="450" width="30" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-decode-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="Decode tokens (concurrent requests)" vertex="1">
+          <mxGeometry x="130" y="448" width="210" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ========== KEY INSIGHT BOXES ========== -->
+        <!-- Insight box 1 -->
+        <mxCell id="insight-box-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry x="400" y="400" width="380" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="insight-label-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#E65100;" value="Decode uses only 128 of 8192 token budget — minimal impact on TTFT" vertex="1">
+          <mxGeometry x="405" y="400" width="370" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Insight box 2 -->
+        <mxCell id="insight-box-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry x="400" y="445" width="380" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="insight-label-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#E65100;" value="TTFT dominated by prefill compute, not decode contention" vertex="1">
+          <mxGeometry x="405" y="445" width="370" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ========== "D = Decode (128)" label for tiny slivers ========== -->
+        <mxCell id="d-legend-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#999999;" value="D = Decode batch (128 tokens)" vertex="1">
+          <mxGeometry x="80" y="275" width="180" height="18" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

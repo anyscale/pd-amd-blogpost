@@ -1,0 +1,336 @@
+<mxfile host="Electron" version="29.3.0">
+  <diagram name="PD Serving KV Transfer" id="pd-kv-transfer-timeline">
+    <mxGraphModel dx="1300" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="750" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#333333;" value="PD Serving: KV Transfer Adds TTFT Overhead" vertex="1">
+          <mxGeometry x="300" y="20" width="700" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Subtitle -->
+        <mxCell id="subtitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" value="In Prefill-Decode disaggregation, KV cache must be transferred from P to D node before decode can begin" vertex="1">
+          <mxGeometry x="250" y="58" width="800" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ========== SWIM LANE HEADERS ========== -->
+        <!-- Client lane label -->
+        <mxCell id="client-lane-label" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#333333;" value="Client" vertex="1">
+          <mxGeometry x="30" y="100" width="100" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Decode Node lane label -->
+        <mxCell id="decode-lane-label" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#2D5016;" value="Decode Node (D)" vertex="1">
+          <mxGeometry x="30" y="200" width="100" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Prefill Node lane label -->
+        <mxCell id="prefill-lane-label" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#1A4D80;" value="Prefill Node (P)" vertex="1">
+          <mxGeometry x="30" y="360" width="100" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ========== SWIM LANE DIVIDERS ========== -->
+        <mxCell id="lane-divider-1" parent="1" style="endArrow=none;html=1;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=8 8;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="30" y="160" as="sourcePoint" />
+            <mxPoint x="1270" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lane-divider-2" parent="1" style="endArrow=none;html=1;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=8 8;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="30" y="310" as="sourcePoint" />
+            <mxPoint x="1270" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== TIMELINE ARROW ========== -->
+        <mxCell id="timeline-arrow" parent="1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#999999;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="470" as="sourcePoint" />
+            <mxPoint x="1250" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="timeline-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#999999;" value="Time →" vertex="1">
+          <mxGeometry x="1195" y="455" width="55" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 1: Client sends request ========== -->
+        <mxCell id="client-request" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;strokeWidth=1;fontSize=10;fontStyle=1;" value="Request" vertex="1">
+          <mxGeometry x="170" y="107" width="60" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow: Client -> Decode Node (Ingress) -->
+        <mxCell id="arrow-client-to-d" parent="1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#82B366;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="135" as="sourcePoint" />
+            <mxPoint x="200" y="195" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-client-to-d-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#666666;" value="Ingress" vertex="1">
+          <mxGeometry x="207" y="155" width="50" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 2: D receives, forwards to P ========== -->
+        <mxCell id="d-receive" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1;fontSize=10;" value="Receive" vertex="1">
+          <mxGeometry x="170" y="200" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow: D -> P (forward request for prefill) -->
+        <mxCell id="arrow-d-to-p" parent="1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6C8EBF;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="240" y="230" as="sourcePoint" />
+            <mxPoint x="290" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-d-to-p-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#666666;" value="Forward for&#10;prefill" vertex="1">
+          <mxGeometry x="243" y="290" width="65" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 3: P runs prefill (large blue block) ========== -->
+        <mxCell id="prefill-block" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=2;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="Prefill Compute" vertex="1">
+          <mxGeometry x="300" y="345" width="320" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill-detail" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#B0C4DE;" value="Process full input prompt, generate KV cache" vertex="1">
+          <mxGeometry x="330" y="380" width="260" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 4: KV Transfer (red/orange gap block) ========== -->
+        <mxCell id="kv-transfer-block" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6B6B;strokeColor=#CC0000;strokeWidth=2;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" value="KV Transfer" vertex="1">
+          <mxGeometry x="625" y="345" width="130" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="kv-transfer-detail" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#FFD0D0;" value="via RDMA / RIXL" vertex="1">
+          <mxGeometry x="635" y="380" width="110" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow: P -> D (KV transfer over network) -->
+        <mxCell id="arrow-kv-transfer" parent="1" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#CC0000;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="345" as="sourcePoint" />
+            <mxPoint x="690" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-kv-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#CC0000;" value="KV Cache&#10;P → D" vertex="1">
+          <mxGeometry x="700" y="280" width="60" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 5: D receives KV, starts decode ========== -->
+        <!-- D waiting period (gray dashed) -->
+        <mxCell id="d-waiting" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;fontSize=9;fontStyle=2;fontColor=#999999;" value="Waiting for KV..." vertex="1">
+          <mxGeometry x="250" y="200" width="420" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- D receives KV -->
+        <mxCell id="d-kv-received" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0E0;strokeColor=#CC0000;strokeWidth=1;fontSize=9;fontColor=#CC0000;" value="KV Recv" vertex="1">
+          <mxGeometry x="680" y="200" width="55" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Decode iterations on D node (green blocks) -->
+        <mxCell id="decode-iter-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#70AD47;strokeColor=#548235;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;fontStyle=1;" value="D1" vertex="1">
+          <mxGeometry x="745" y="200" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-iter-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#70AD47;strokeColor=#548235;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;fontStyle=1;" value="D2" vertex="1">
+          <mxGeometry x="790" y="200" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-iter-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#70AD47;strokeColor=#548235;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;fontStyle=1;" value="D3" vertex="1">
+          <mxGeometry x="835" y="200" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-iter-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#70AD47;strokeColor=#548235;strokeWidth=1;fontColor=#FFFFFF;fontSize=8;fontStyle=1;" value="D4" vertex="1">
+          <mxGeometry x="880" y="200" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-dots" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#548235;" value="..." vertex="1">
+          <mxGeometry x="925" y="200" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#548235;" value="Decode Iterations" vertex="1">
+          <mxGeometry x="770" y="235" width="120" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- ========== FIRST TOKEN EMITTED ========== -->
+        <mxCell id="first-token-marker" parent="1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#548235;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="765" y="195" as="sourcePoint" />
+            <mxPoint x="765" y="135" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="first-token-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#548235;" value="First Token&#10;Emitted" vertex="1">
+          <mxGeometry x="730" y="107" width="70" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ========== TTFT SPAN ANNOTATION ========== -->
+        <!-- TTFT measurement bracket -->
+        <mxCell id="ttft-bracket-line" parent="1" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#FF0000;dashed=0;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="500" as="sourcePoint" />
+            <mxPoint x="765" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Left tick -->
+        <mxCell id="ttft-left-tick" parent="1" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#FF0000;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="493" as="sourcePoint" />
+            <mxPoint x="200" y="507" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Right tick -->
+        <mxCell id="ttft-right-tick" parent="1" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#FF0000;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="765" y="493" as="sourcePoint" />
+            <mxPoint x="765" y="507" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <!-- TTFT label on the bracket -->
+        <mxCell id="ttft-span-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#FF0000;" value="PD TTFT" vertex="1">
+          <mxGeometry x="430" y="485" width="100" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Dashed lines connecting the bracket to the events -->
+        <mxCell id="ttft-start-dashed" parent="1" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#FF0000;dashed=1;dashPattern=4 4;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="135" as="sourcePoint" />
+            <mxPoint x="200" y="493" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ttft-end-dashed" parent="1" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#FF0000;dashed=1;dashPattern=4 4;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="765" y="195" as="sourcePoint" />
+            <mxPoint x="765" y="493" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- "Request arrives" label at start -->
+        <mxCell id="request-arrives-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#FF0000;" value="Request arrives" vertex="1">
+          <mxGeometry x="160" y="508" width="80" height="15" as="geometry" />
+        </mxCell>
+        <!-- "First token" label at end -->
+        <mxCell id="first-token-end-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#FF0000;" value="First token" vertex="1">
+          <mxGeometry x="733" y="508" width="65" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- ========== COMPARISON ANNOTATION BOXES ========== -->
+        <!-- Comparison box -->
+        <mxCell id="compare-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="30" y="545" width="530" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="compare-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;" value="TTFT Comparison" vertex="1">
+          <mxGeometry x="45" y="550" width="150" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Aggregated TTFT -->
+        <mxCell id="agg-ttft-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="50" y="578" width="20" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="agg-ttft-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" value="&lt;b&gt;Agg TTFT&lt;/b&gt; = Prefill compute only" vertex="1">
+          <mxGeometry x="75" y="574" width="250" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- PD TTFT -->
+        <mxCell id="pd-ttft-swatch-blue" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="50" y="600" width="10" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="pd-ttft-swatch-red" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6B6B;strokeColor=#CC0000;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="60" y="600" width="10" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="pd-ttft-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" value="&lt;b&gt;PD TTFT&lt;/b&gt;  = Prefill compute &lt;font color=&quot;#CC0000&quot;&gt;&lt;b&gt;+ KV transfer + network overhead&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry x="75" y="596" width="470" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ========== KEY INSIGHT BOX ========== -->
+        <mxCell id="insight-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry x="580" y="545" width="400" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="insight-icon" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#F9A825;" value="Key Insight" vertex="1">
+          <mxGeometry x="590" y="548" width="90" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="insight-text" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#E65100;" value="PD disaggregation adds a &lt;b&gt;visible gap&lt;/b&gt; (KV transfer) between prefill completion and decode start. This &lt;b&gt;inflates TTFT&lt;/b&gt; compared to aggregated serving, where decode begins immediately after prefill." vertex="1">
+          <mxGeometry x="590" y="572" width="380" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LEGEND ========== -->
+        <mxCell id="legend-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="960" y="100" width="210" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#333333;" value="Legend" vertex="1">
+          <mxGeometry x="975" y="105" width="60" height="18" as="geometry" />
+        </mxCell>
+        <!-- Prefill -->
+        <mxCell id="legend-prefill-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4472C4;strokeColor=#2F5597;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="975" y="130" width="25" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-prefill-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="Prefill compute" vertex="1">
+          <mxGeometry x="1005" y="127" width="100" height="18" as="geometry" />
+        </mxCell>
+        <!-- KV Transfer -->
+        <mxCell id="legend-kv-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6B6B;strokeColor=#CC0000;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="975" y="152" width="25" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-kv-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="KV transfer overhead" vertex="1">
+          <mxGeometry x="1005" y="149" width="130" height="18" as="geometry" />
+        </mxCell>
+        <!-- Decode -->
+        <mxCell id="legend-decode-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#70AD47;strokeColor=#548235;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="975" y="174" width="25" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-decode-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="Decode iterations" vertex="1">
+          <mxGeometry x="1005" y="171" width="110" height="18" as="geometry" />
+        </mxCell>
+        <!-- Waiting -->
+        <mxCell id="legend-wait-swatch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;dashPattern=4 4;" value="" vertex="1">
+          <mxGeometry x="975" y="196" width="25" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-wait-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" value="D node idle / waiting" vertex="1">
+          <mxGeometry x="1005" y="193" width="130" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- ========== NUMBERED FLOW STEPS ========== -->
+        <!-- Step 1 -->
+        <mxCell id="step-1" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;strokeColor=none;fontSize=11;" value="1" vertex="1">
+          <mxGeometry x="155" y="93" width="24" height="24" as="geometry" />
+        </mxCell>
+        <!-- Step 2 -->
+        <mxCell id="step-2" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;strokeColor=none;fontSize=11;" value="2" vertex="1">
+          <mxGeometry x="248" y="260" width="24" height="24" as="geometry" />
+        </mxCell>
+        <!-- Step 3 -->
+        <mxCell id="step-3" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;strokeColor=none;fontSize=11;" value="3" vertex="1">
+          <mxGeometry x="280" y="338" width="24" height="24" as="geometry" />
+        </mxCell>
+        <!-- Step 4 -->
+        <mxCell id="step-4" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;strokeColor=none;fontSize=11;" value="4" vertex="1">
+          <mxGeometry x="605" y="338" width="24" height="24" as="geometry" />
+        </mxCell>
+        <!-- Step 5 -->
+        <mxCell id="step-5" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;strokeColor=none;fontSize=11;" value="5" vertex="1">
+          <mxGeometry x="745" y="175" width="24" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP DESCRIPTIONS (right side) ========== -->
+        <mxCell id="steps-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="960" y="250" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="steps-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#333333;" value="Request Flow" vertex="1">
+          <mxGeometry x="975" y="255" width="100" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" value="&lt;b&gt;1&lt;/b&gt; Client sends request" vertex="1">
+          <mxGeometry x="975" y="278" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" value="&lt;b&gt;2&lt;/b&gt; D node forwards to P node" vertex="1">
+          <mxGeometry x="975" y="298" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" value="&lt;b&gt;3&lt;/b&gt; P runs prefill compute" vertex="1">
+          <mxGeometry x="975" y="318" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-4" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" value="&lt;b&gt;4&lt;/b&gt; KV cache transferred P → D" vertex="1">
+          <mxGeometry x="975" y="338" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-5" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" value="&lt;b&gt;5&lt;/b&gt; D starts decode → first token" vertex="1">
+          <mxGeometry x="975" y="358" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="step-desc-overhead" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#CC0000;" value="Steps 2 + 4 are PD-only overhead" vertex="1">
+          <mxGeometry x="975" y="378" width="180" height="15" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

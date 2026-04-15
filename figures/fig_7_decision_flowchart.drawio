@@ -1,0 +1,218 @@
+<mxfile host="Electron" version="29.3.0">
+  <diagram name="PD vs Aggregated Decision Framework" id="pd-decision-framework">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#333333;" value="PD vs Aggregated: Decision Framework" vertex="1">
+          <mxGeometry x="250" y="15" width="700" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1 Number -->
+        <mxCell id="step1-num" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;fontSize=14;strokeColor=#0d5bbd;strokeWidth=1;html=1;whiteSpace=wrap;" value="1" vertex="1">
+          <mxGeometry x="455" y="58" width="28" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1: Decision Diamond -->
+        <mxCell id="step1" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;fontStyle=1;" value="What&#39;s your primary&lt;br&gt;SLA constraint?" vertex="1">
+          <mxGeometry x="470" y="80" width="260" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1 right branch: Strictly TTFT → Agg Terminal 1 -->
+        <mxCell id="edge-step1-agg1" edge="1" parent="1" source="step1" target="agg1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#e65100;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-step1-agg1-label" connectable="0" parent="edge-step1-agg1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="Strictly TTFT" vertex="1">
+          <mxGeometry x="-0.1" relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Agg Terminal 1 -->
+        <mxCell id="agg1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;strokeWidth=2;fontSize=12;fontStyle=1;arcSize=20;fontColor=#bf360c;" value="Use Aggregated&lt;br&gt;Serving" vertex="1">
+          <mxGeometry x="880" y="115" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="agg1-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#e65100;" value="Agg is simpler and better" vertex="1">
+          <mxGeometry x="890" y="175" width="170" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1 down branch: TPOT or E2E → Step 2 -->
+        <mxCell id="edge-step1-step2" edge="1" parent="1" source="step1" target="step2" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#2e7d32;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-step1-step2-label" connectable="0" parent="edge-step1-step2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="TPOT or E2E" vertex="1">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint x="55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step1-step2-note" connectable="0" parent="edge-step1-step2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#2e7d32;fontStyle=3;" value="PD likely wins" vertex="1">
+          <mxGeometry x="0.2" relative="1" as="geometry">
+            <mxPoint x="55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Step 2 Number -->
+        <mxCell id="step2-num" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;fontSize=14;strokeColor=#0d5bbd;strokeWidth=1;html=1;whiteSpace=wrap;" value="2" vertex="1">
+          <mxGeometry x="455" y="268" width="28" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2: Decision Diamond -->
+        <mxCell id="step2" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;fontStyle=1;" value="Is your output long&lt;br&gt;enough for TPOT savings&lt;br&gt;to compound?" vertex="1">
+          <mxGeometry x="440" y="290" width="320" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2 right branch: Short output → Agg Terminal 2 -->
+        <mxCell id="edge-step2-agg2" edge="1" parent="1" source="step2" target="agg2" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#e65100;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-step2-agg2-label" connectable="0" parent="edge-step2-agg2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="Short output" vertex="1">
+          <mxGeometry x="-0.15" relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step2-agg2-sublabel" connectable="0" parent="edge-step2-agg2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#666666;fontStyle=2;" value="(classification, extraction, short QA)" vertex="1">
+          <mxGeometry x="-0.15" relative="1" as="geometry">
+            <mxPoint y="9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Agg Terminal 2 -->
+        <mxCell id="agg2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;strokeWidth=2;fontSize=12;fontStyle=1;arcSize=20;fontColor=#bf360c;" value="Use Aggregated&lt;br&gt;Serving" vertex="1">
+          <mxGeometry x="880" y="335" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="agg2-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#e65100;" value="Marginal PD advantage" vertex="1">
+          <mxGeometry x="890" y="395" width="170" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2 down branch: Moderate to long output → Step 3 -->
+        <mxCell id="edge-step2-step3" edge="1" parent="1" source="step2" target="step3" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#2e7d32;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-step2-step3-label" connectable="0" parent="edge-step2-step3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="Moderate to long output" vertex="1">
+          <mxGeometry x="-0.25" relative="1" as="geometry">
+            <mxPoint x="100" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step2-step3-sublabel" connectable="0" parent="edge-step2-step3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#666666;fontStyle=2;" value="(chat, generation, reasoning)" vertex="1">
+          <mxGeometry x="0" relative="1" as="geometry">
+            <mxPoint x="100" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step2-step3-note" connectable="0" parent="edge-step2-step3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#2e7d32;fontStyle=3;" value="PD advantage grows" vertex="1">
+          <mxGeometry x="0.3" relative="1" as="geometry">
+            <mxPoint x="100" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Step 3 Number -->
+        <mxCell id="step3-num" parent="1" style="ellipse;aspect=fixed;fillColor=#1071e5;fontColor=#ffffff;fontStyle=1;fontSize=14;strokeColor=#0d5bbd;strokeWidth=1;html=1;whiteSpace=wrap;" value="3" vertex="1">
+          <mxGeometry x="455" y="508" width="28" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3: Decision Diamond -->
+        <mxCell id="step3" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;fontStyle=1;" value="What&#39;s your KV&lt;br&gt;cache hit rate?" vertex="1">
+          <mxGeometry x="470" y="530" width="260" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3 left branch: Low hit rate → PD Terminal 1 -->
+        <mxCell id="edge-step3-pd1" edge="1" parent="1" source="step3" target="pd1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1b5e20;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step3-pd1-label" connectable="0" parent="edge-step3-pd1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="Low hit rate (&amp;lt; 30%)" vertex="1">
+          <mxGeometry x="-0.3" relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- PD Terminal 1: P-heavy (dark green) -->
+        <mxCell id="pd1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1b5e20;strokeColor=#0d3b13;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#ffffff;arcSize=20;" value="Use PD with P-heavy ratio&lt;br&gt;(e.g., 2P:1D)" vertex="1">
+          <mxGeometry x="30" y="670" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pd1-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=3;fontColor=#1b5e20;" value="Largest PD advantage" vertex="1">
+          <mxGeometry x="55" y="730" width="170" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3 center branch: Moderate hit rate → PD Terminal 2 -->
+        <mxCell id="edge-step3-pd2" edge="1" parent="1" source="step3" target="pd2" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#388e3c;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-step3-pd2-label" connectable="0" parent="edge-step3-pd2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="Moderate hit rate (30-60%)" vertex="1">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint x="105" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- PD Terminal 2: Balanced (medium green) -->
+        <mxCell id="pd2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388e3c;strokeColor=#2e7d32;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#ffffff;arcSize=20;" value="Use PD with balanced ratio&lt;br&gt;(1P:1D to 1P:2D)" vertex="1">
+          <mxGeometry x="470" y="720" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pd2-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=3;fontColor=#388e3c;" value="Moderate advantage" vertex="1">
+          <mxGeometry x="525" y="780" width="150" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3 right branch: High hit rate → PD Terminal 3 -->
+        <mxCell id="edge-step3-pd3" edge="1" parent="1" source="step3" target="pd3" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#66bb6a;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="975" y="595" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-step3-pd3-label" connectable="0" parent="edge-step3-pd3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=0;" value="High hit rate (&amp;gt; 60%)" vertex="1">
+          <mxGeometry x="-0.3" relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- PD Terminal 3: D-heavy (light green) -->
+        <mxCell id="pd3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#66bb6a;strokeWidth=2;fontSize=12;fontStyle=1;fontColor=#1b5e20;arcSize=20;" value="Use PD with D-heavy ratio&lt;br&gt;(1P:2D or 1P:3D)" vertex="1">
+          <mxGeometry x="865" y="670" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pd3-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=3;fontColor=#66bb6a;" value="Smaller but persistent advantage" vertex="1">
+          <mxGeometry x="875" y="730" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Bottom note -->
+        <mxCell id="bottom-note" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;strokeWidth=1;fontSize=11;fontStyle=2;fontColor=#555555;arcSize=10;" value="Always benchmark your specific workload. Ray Serve makes it easy to deploy and test different configurations on the same cluster." vertex="1">
+          <mxGeometry x="300" y="830" width="600" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;dashed=1;dashPattern=8 8;" value="" vertex="1">
+          <mxGeometry x="30" y="890" width="350" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;" value="Legend" vertex="1">
+          <mxGeometry x="45" y="895" width="60" height="20" as="geometry" />
+        </mxCell>
+        <!-- Green swatch -->
+        <mxCell id="legend-green" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e7d32;strokeColor=#2e7d32;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="50" y="920" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-green-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" value="PD Serving recommended" vertex="1">
+          <mxGeometry x="78" y="918" width="160" height="22" as="geometry" />
+        </mxCell>
+        <!-- Orange swatch -->
+        <mxCell id="legend-orange" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="50" y="945" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-orange-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" value="Aggregated Serving recommended" vertex="1">
+          <mxGeometry x="78" y="943" width="220" height="22" as="geometry" />
+        </mxCell>
+        <!-- Blue diamond swatch -->
+        <mxCell id="legend-blue" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry x="50" y="970" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-blue-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" value="Decision point" vertex="1">
+          <mxGeometry x="78" y="968" width="120" height="22" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

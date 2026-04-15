@@ -1,0 +1,382 @@
+<mxfile host="Electron" agent="Claude Code" version="24.0.0">
+  <diagram name="PD-Disaggregation-Architecture" id="pd-disagg-arch">
+    <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============================================ -->
+        <!-- TITLE -->
+        <!-- ============================================ -->
+        <mxCell id="title" value="&lt;font style=&quot;font-size:22px;color:#1071e5;&quot;&gt;&lt;b&gt;Ray Serve PD Disaggregation &amp;mdash; AMD MI325X Cluster&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="410" y="15" width="580" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="&lt;font style=&quot;font-size:12px;color:#666666;&quot;&gt;4-node cluster with Prefill-Decode disaggregation for optimized LLM inference&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="450" y="48" width="470" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 1: CLIENT -->
+        <!-- ============================================ -->
+        <mxCell id="client-lane-bg" value="" style="rounded=0;fillColor=#fafafa;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="85" width="1600" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="client-lane-label" value="&lt;b&gt;Client&lt;br&gt;Layer&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="55" y="110" width="60" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="client" value="&lt;b style=&quot;font-size:14px;&quot;&gt;Client&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#555;&quot;&gt;OpenAI-compatible API Requests&lt;/font&gt;" style="rounded=1;arcSize=12;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;html=1;whiteSpace=wrap;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="95" width="230" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1 -->
+        <mxCell id="step1" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1071e5;strokeColor=#0a5abf;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="713" y="163" width="26" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- Divider: Client / Ingress -->
+        <mxCell id="div1" value="" style="line;strokeColor=#1071e5;strokeWidth=2;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="185" width="1600" height="10" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 2: INGRESS -->
+        <!-- ============================================ -->
+        <mxCell id="ingress-lane-bg" value="" style="rounded=0;fillColor=#f0f7ff;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="195" width="1600" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress-lane-label" value="&lt;b&gt;Ingress&lt;br&gt;Layer&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="55" y="240" width="65" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Ingress container -->
+        <mxCell id="ingress-group" value="&lt;b style=&quot;font-size:13px;color:#1071e5;&quot;&gt;Ray Serve Ingress&lt;/b&gt;  &lt;font style=&quot;font-size:10px;color:#666;&quot;&gt;&amp;mdash; Session-aware routing via X-Session-Id header&lt;/font&gt;" style="rounded=1;dashed=1;dashPattern=8 8;fillColor=none;strokeColor=#1071e5;strokeWidth=2;verticalAlign=top;html=1;spacingTop=5;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="170" y="205" width="1120" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Evenly spaced: container inner width ~1080, 4 replicas at x=220, 480, 740, 1000 -->
+        <mxCell id="ingress1" value="&lt;b&gt;Ingress&lt;br&gt;Replica 1&lt;/b&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.22;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="220" y="253" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress2" value="&lt;b&gt;Ingress&lt;br&gt;Replica 2&lt;/b&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.22;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="253" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress3" value="&lt;b&gt;Ingress&lt;br&gt;Replica 3&lt;/b&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.22;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="720" y="253" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress4" value="&lt;b&gt;Ingress&lt;br&gt;Replica 4&lt;/b&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.22;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="970" y="253" width="150" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow: Client -> Ingress group -->
+        <mxCell id="arrow-client-ingress" value="&lt;font style=&quot;font-size:10px;&quot;&gt;HTTP / REST&lt;/font&gt;" style="endArrow=classic;strokeColor=#1071e5;strokeWidth=2;dashed=0;edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="client" target="ingress-group">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2 -->
+        <mxCell id="step2" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1071e5;strokeColor=#0a5abf;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="713" y="333" width="26" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- Divider: Ingress / Decode -->
+        <mxCell id="div2" value="" style="line;strokeColor=#1071e5;strokeWidth=2;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="345" width="1600" height="10" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 3: DECODE NODES -->
+        <!-- ============================================ -->
+        <mxCell id="decode-lane-bg" value="" style="rounded=0;fillColor=#e8f0fe;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="355" width="1600" height="255" as="geometry" />
+        </mxCell>
+        <mxCell id="decode-lane-label" value="&lt;b&gt;Decode&lt;br&gt;Layer&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="55" y="445" width="60" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Decode container -->
+        <mxCell id="decode-group" value="&lt;b style=&quot;font-size:14px;color:#0078d4;&quot;&gt;Decode Nodes&lt;/b&gt;  &lt;font style=&quot;font-size:10px;color:#666;&quot;&gt;&amp;mdash; Dedicated to token generation, no prefill interference&lt;/font&gt;" style="rounded=1;dashed=1;dashPattern=8 8;fillColor=none;strokeColor=#0078d4;strokeWidth=2;verticalAlign=top;html=1;spacingTop=5;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="170" y="365" width="1120" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- Decode Replica 1 -->
+        <mxCell id="decode1-box" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#0078d4;strokeWidth=2;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="400" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-header" value="&lt;b style=&quot;font-size:14px;color:#0078d4;&quot;&gt;Decode Server 1&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="402" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-tp" value="&lt;b&gt;TP8&lt;/b&gt;  (8 GPUs)" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;html=1;fontSize=12;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="440" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-cudagraph" value="cudagraph_mode:&lt;br&gt;&lt;b style=&quot;font-size:12px;&quot;&gt;FULL_DECODE_ONLY&lt;/b&gt;" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1;html=1;fontSize=10;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="490" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-tokens" value="max_num_batched_tokens:&lt;br&gt;&lt;b style=&quot;font-size:20px;color:#c62828;&quot;&gt;4,096&lt;/b&gt;" style="rounded=1;fillColor=#fce4ec;strokeColor=#c62828;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="440" y="440" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-note" value="&lt;i style=&quot;font-size:10px;color:#666;&quot;&gt;Token generation only&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="480" y="510" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="decode1-step6-label" value="&lt;b style=&quot;color:#0078d4;font-size:10px;&quot;&gt;Node 1&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="220" y="553" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Decode Replica 2 -->
+        <mxCell id="decode2-box" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#0078d4;strokeWidth=2;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="400" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-header" value="&lt;b style=&quot;font-size:14px;color:#0078d4;&quot;&gt;Decode Server 2&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="930" y="402" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-tp" value="&lt;b&gt;TP8&lt;/b&gt;  (8 GPUs)" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;html=1;fontSize=12;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="440" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-cudagraph" value="cudagraph_mode:&lt;br&gt;&lt;b style=&quot;font-size:12px;&quot;&gt;FULL_DECODE_ONLY&lt;/b&gt;" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1;html=1;fontSize=10;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="490" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-tokens" value="max_num_batched_tokens:&lt;br&gt;&lt;b style=&quot;font-size:20px;color:#c62828;&quot;&gt;4,096&lt;/b&gt;" style="rounded=1;fillColor=#fce4ec;strokeColor=#c62828;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="440" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-note" value="&lt;i style=&quot;font-size:10px;color:#666;&quot;&gt;Token generation only&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="510" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="decode2-step6-label" value="&lt;b style=&quot;color:#0078d4;font-size:10px;&quot;&gt;Node 2&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="800" y="553" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow: Ingress -> Decode group -->
+        <mxCell id="arrow-ingress-decode" value="&lt;font style=&quot;font-size:10px;&quot;&gt;Routes by Session ID&lt;/font&gt;" style="endArrow=classic;strokeColor=#1071e5;strokeWidth=2;dashed=0;edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ingress-group" target="decode-group">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- KV CACHE TRANSFER ZONE -->
+        <!-- ============================================ -->
+        <mxCell id="kv-zone" value="" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=3;dashed=0;opacity=80;" vertex="1" parent="1">
+          <mxGeometry x="170" y="615" width="1120" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="kv-label-main" value="&lt;b style=&quot;font-size:14px;color:#1b5e20;&quot;&gt;KV Cache Transfer via NIXL over RDMA/RoCE&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="430" y="620" width="370" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="kv-label-sub" value="&lt;font style=&quot;font-size:10px;color:#388e3c;&quot;&gt;Zero-copy GPU-to-GPU memory transfer &amp;mdash; critical path for PD disaggregation&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="390" y="648" width="480" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Steps 4, 5 in KV zone -->
+        <mxCell id="step4" value="4" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2e7d32;strokeColor=#1b5e20;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="250" y="668" width="26" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="step5" value="5" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#2e7d32;strokeColor=#1b5e20;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="668" width="26" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- KV bidirectional arrows: Decode1 <-> Prefill1 (through KV zone) -->
+        <mxCell id="kv-d1-p1" value="" style="endArrow=classic;startArrow=classic;strokeColor=#2e7d32;strokeWidth=3;dashed=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="decode1-box" target="prefill1-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- KV bidirectional arrows: Decode2 <-> Prefill2 (through KV zone) -->
+        <mxCell id="kv-d2-p2" value="" style="endArrow=classic;startArrow=classic;strokeColor=#2e7d32;strokeWidth=3;dashed=0;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="decode2-box" target="prefill2-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3: Decode forwards to Prefill (left side arrow) -->
+        <mxCell id="step3" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1071e5;strokeColor=#0a5abf;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="145" y="645" width="26" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-d1-p1-forward" value="&lt;font style=&quot;font-size:9px;&quot;&gt;Forward&lt;br&gt;for prefill&lt;/font&gt;" style="endArrow=classic;strokeColor=#1071e5;strokeWidth=2;dashed=1;dashPattern=6 3;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1" source="decode1-box" target="prefill1-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Second forward arrow: Decode2 -> Prefill2 -->
+        <mxCell id="arrow-d2-p2-forward" value="&lt;font style=&quot;font-size:9px;&quot;&gt;Forward&lt;br&gt;for prefill&lt;/font&gt;" style="endArrow=classic;strokeColor=#1071e5;strokeWidth=2;dashed=1;dashPattern=6 3;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1" source="decode2-box" target="prefill2-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 4: PREFILL NODES -->
+        <!-- ============================================ -->
+        <mxCell id="prefill-lane-bg" value="" style="rounded=0;fillColor=#e8f5e9;strokeColor=none;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="50" y="705" width="1600" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill-lane-label" value="&lt;b&gt;Prefill&lt;br&gt;Layer&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="55" y="800" width="55" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Prefill container -->
+        <mxCell id="prefill-group" value="&lt;b style=&quot;font-size:14px;color:#00695c;&quot;&gt;Prefill Nodes&lt;/b&gt;  &lt;font style=&quot;font-size:10px;color:#666;&quot;&gt;&amp;mdash; Handles compute-heavy prefill&lt;/font&gt;" style="rounded=1;dashed=1;dashPattern=8 8;fillColor=none;strokeColor=#00695c;strokeWidth=2;verticalAlign=top;html=1;spacingTop=5;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="170" y="720" width="1120" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- Prefill Replica 1 -->
+        <mxCell id="prefill1-box" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#00695c;strokeWidth=2;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="755" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-header" value="&lt;b style=&quot;font-size:14px;color:#00695c;&quot;&gt;Prefill Server 1&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="758" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-tp" value="&lt;b&gt;TP8&lt;/b&gt;  (8 GPUs)" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;html=1;fontSize=12;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="795" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-nixl" value="&lt;b style=&quot;font-size:12px;&quot;&gt;NixlConnector&lt;/b&gt;" style="rounded=1;fillColor=#e8f5e9;strokeColor=#43a047;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="845" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-tokens" value="max_num_batched_tokens:&lt;br&gt;&lt;b style=&quot;font-size:20px;color:#1b5e20;&quot;&gt;32,768&lt;/b&gt;" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="440" y="795" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-note" value="&lt;i style=&quot;font-size:10px;color:#666;&quot;&gt;Computes KV cache&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="480" y="865" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill1-node-label" value="&lt;b style=&quot;color:#00695c;font-size:10px;&quot;&gt;Node 3&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="220" y="908" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Prefill Replica 2 -->
+        <mxCell id="prefill2-box" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#00695c;strokeWidth=2;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="755" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-header" value="&lt;b style=&quot;font-size:14px;color:#00695c;&quot;&gt;Prefill Server 2&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="930" y="758" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-tp" value="&lt;b&gt;TP8&lt;/b&gt;  (8 GPUs)" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;html=1;fontSize=12;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="795" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-nixl" value="&lt;b style=&quot;font-size:12px;&quot;&gt;NixlConnector&lt;/b&gt;" style="rounded=1;fillColor=#e8f5e9;strokeColor=#43a047;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="845" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-tokens" value="max_num_batched_tokens:&lt;br&gt;&lt;b style=&quot;font-size:20px;color:#1b5e20;&quot;&gt;32,768&lt;/b&gt;" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;html=1;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="795" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-note" value="&lt;i style=&quot;font-size:10px;color:#666;&quot;&gt;Computes KV cache&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="865" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="prefill2-node-label" value="&lt;b style=&quot;color:#00695c;font-size:10px;&quot;&gt;Node 4&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="800" y="908" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Divider: Prefill / Hardware -->
+        <mxCell id="div3" value="" style="line;strokeColor=#1071e5;strokeWidth=2;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="970" width="1600" height="10" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 5: HARDWARE -->
+        <!-- ============================================ -->
+        <mxCell id="hw-lane-bg" value="" style="rounded=0;fillColor=#fafafa;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="980" width="1600" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="hw-lane-label" value="&lt;b&gt;Hardware&lt;br&gt;Layer&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1010" width="75" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hw-gpu" value="&lt;b style=&quot;font-size:14px;color:#0078d4;&quot;&gt;AMD Instinct MI325X&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;&quot;&gt;288 GB HBM3e per GPU&lt;br&gt;4 nodes x 8 GPUs = &lt;b&gt;32 GPUs total&lt;/b&gt;&lt;/font&gt;" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;html=1;whiteSpace=wrap;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="990" width="380" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hw-network" value="&lt;b style=&quot;font-size:14px;color:#2e7d32;&quot;&gt;8x mlx5 RoCE Fabric&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;&quot;&gt;RDMA-capable network interconnect&lt;br&gt;High-bandwidth KV cache transfer&lt;/font&gt;" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;html=1;whiteSpace=wrap;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="990" width="380" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- STEP 6: Decode generates tokens -->
+        <!-- ============================================ -->
+        <mxCell id="step6" value="6" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1071e5;strokeColor=#0a5abf;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="475" width="26" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- STEP 7: Token stream back to client -->
+        <!-- ============================================ -->
+        <mxCell id="step7" value="7" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#c62828;strokeColor=#b71c1c;fontColor=#ffffff;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="300" width="26" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- Return path: single orthogonal line from Decode area back up to Client -->
+        <mxCell id="arrow-stream-back" value="&lt;font style=&quot;font-size:10px;color:#c62828;&quot;&gt;Tokens stream back to client (SSE)&lt;/font&gt;" style="endArrow=classic;strokeColor=#c62828;strokeWidth=2;dashed=1;dashPattern=8 4;html=1;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="decode2-box" target="client">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1460" y="454" />
+              <mxPoint x="1460" y="128" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- ASYMMETRIC TOKENS CALLOUT -->
+        <!-- ============================================ -->
+        <mxCell id="tokens-callout-bg" value="" style="rounded=1;fillColor=#fff8e1;strokeColor=#f57f17;strokeWidth=2;dashed=1;dashPattern=5 3;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="575" width="270" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="tokens-callout" value="&lt;b style=&quot;font-size:13px;color:#e65100;&quot;&gt;Asymmetric Batching&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;&quot;&gt;Prefill: &lt;b style=&quot;color:#1b5e20;font-size:14px;&quot;&gt;32,768&lt;/b&gt; tokens&lt;br&gt;Decode: &lt;b style=&quot;color:#c62828;font-size:14px;&quot;&gt;4,096&lt;/b&gt; tokens&lt;br&gt;&lt;b&gt;8x ratio&lt;/b&gt; &amp;mdash; each node optimized&lt;br&gt;for its specific workload&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1330" y="580" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- REQUEST FLOW LEGEND -->
+        <!-- ============================================ -->
+        <mxCell id="legend-bg" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1120" width="620" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;b style=&quot;font-size:14px;color:#333;&quot;&gt;Request Flow&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="65" y="1125" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s1" value="&lt;font color=&quot;#1071e5&quot;&gt;&lt;b&gt;1&lt;/b&gt;&lt;/font&gt;  Client sends OpenAI-compatible API request to Ingress (HTTP)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1155" width="400" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s2" value="&lt;font color=&quot;#1071e5&quot;&gt;&lt;b&gt;2&lt;/b&gt;&lt;/font&gt;  Ingress routes request to Decode node by Session ID" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1177" width="370" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s3" value="&lt;font color=&quot;#1071e5&quot;&gt;&lt;b&gt;3&lt;/b&gt;&lt;/font&gt;  Decode forwards request to Prefill for prefill computation" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1199" width="380" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s4" value="&lt;font color=&quot;#2e7d32&quot;&gt;&lt;b&gt;4&lt;/b&gt;&lt;/font&gt;  Prefill computes KV cache" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1221" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s5" value="&lt;font color=&quot;#2e7d32&quot;&gt;&lt;b&gt;5&lt;/b&gt;&lt;/font&gt;  KV cache transferred Prefill → Decode via NIXL/RDMA" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1243" width="380" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s6" value="&lt;font color=&quot;#1071e5&quot;&gt;&lt;b&gt;6&lt;/b&gt;&lt;/font&gt;  Decode generates tokens" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1265" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-s7" value="&lt;font color=&quot;#c62828&quot;&gt;&lt;b&gt;7&lt;/b&gt;&lt;/font&gt;  Tokens stream back to client (SSE)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1287" width="260" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow Legend -->
+        <mxCell id="legend-arrow-bg" value="" style="rounded=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;html=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1120" width="400" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-arrow-title" value="&lt;b style=&quot;font-size:14px;color:#333;&quot;&gt;Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="715" y="1125" width="60" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-solid" value="" style="endArrow=classic;strokeColor=#1071e5;strokeWidth=2;dashed=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="1168" as="sourcePoint" />
+            <mxPoint x="790" y="1168" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg-solid-label" value="Request / Data Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1158" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-kv" value="" style="endArrow=classic;startArrow=classic;strokeColor=#2e7d32;strokeWidth=3;dashed=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="1198" as="sourcePoint" />
+            <mxPoint x="790" y="1198" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg-kv-label" value="KV Cache Transfer (RDMA/RoCE)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1188" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-stream" value="" style="endArrow=classic;strokeColor=#c62828;strokeWidth=2;dashed=1;dashPattern=8 4;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="1228" as="sourcePoint" />
+            <mxPoint x="790" y="1228" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg-stream-label" value="Token Stream (SSE)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1218" width="140" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
