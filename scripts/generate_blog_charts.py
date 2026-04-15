@@ -109,27 +109,39 @@ def fig1_hero_bar():
                 ha="center", va="bottom", fontsize=8, color=COLOR_AGG,
                 fontweight="medium")
 
-    # Arrow + multiplier between each pair
+    # Dashed extension lines + double-headed arrow showing gap
     for i in range(n):
         mult = pd_qps[i] / agg_qps[i]
         pd_wins = mult >= 1.0
         color = COLOR_WINNER if pd_wins else "#d62728"  # green or red
         label = f"{mult:.1f}×" if pd_wins else f"{1/mult:.1f}× Agg"
 
-        # Draw arrow from shorter bar to taller bar
         lo = min(pd_qps[i], agg_qps[i])
         hi = max(pd_qps[i], agg_qps[i])
-        mid_x = x[i]
-        arrow_x = mid_x + width * 0.75  # right of the bar pair
 
-        ax.annotate("", xy=(arrow_x, hi), xytext=(arrow_x, lo),
-                     arrowprops=dict(arrowstyle="->", color=color, lw=2.0,
-                                     shrinkA=2, shrinkB=2))
-        # Multiplier text next to arrow
+        # Right edge of the agg bar (rightmost bar)
+        agg_right = x[i] + width / 2 + width * 0.02
+        # Where the annotation bracket sits
+        bracket_x = x[i] + width / 2 + width * 0.55
+
+        # Dashed horizontal lines from each bar top to the bracket
+        ax.plot([agg_right, bracket_x + 0.05], [hi, hi],
+                color=color, linestyle=":", linewidth=1.0, alpha=0.6, zorder=2)
+        ax.plot([agg_right, bracket_x + 0.05], [lo, lo],
+                color=color, linestyle=":", linewidth=1.0, alpha=0.6, zorder=2)
+
+        # Double-headed arrow between hi and lo at bracket_x
+        ax.annotate("", xy=(bracket_x, hi), xytext=(bracket_x, lo),
+                     arrowprops=dict(arrowstyle="<->", color=color, lw=1.8,
+                                     shrinkA=1, shrinkB=1))
+
+        # Multiplier label next to the arrow
         mid_y = (lo + hi) / 2
-        ax.text(arrow_x + 0.12, mid_y, label,
+        ax.text(bracket_x + 0.13, mid_y, label,
                 ha="left", va="center", fontsize=10, fontweight="bold",
-                color=color)
+                color=color,
+                bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
+                          edgecolor=color, alpha=0.85, linewidth=0.8))
 
     # X-axis: scenario + SLA
     labels = [f"{d['label']}\n({d['sla']})" for d in data]
