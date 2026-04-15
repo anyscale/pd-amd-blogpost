@@ -10,6 +10,11 @@ One of the most powerful levers for breaking through the throughput ceiling is *
 
 PD adds operational complexity: KV cache must be transferred across nodes, the prefill-to-decode ratio must be tuned per workload, and session-aware routing matters for cache reuse. In this post, we share results from two large MoE models (Qwen3-235B-A22B and DeepSeek-V3-0324) on AMD MI325X GPUs, using Ray Serve and vLLM. We show results where PD saves up to 50% compute cost -- and also results where it does not help -- so you can make the right decision for your workload.
 
+Here is the punchline: under the same GPU budget and SLA, PD can serve **1.1x to 1.9x more QPS** than aggregated, depending on the workload.
+
+![PD vs Aggregated: Max Sustainable QPS Under SLA](../figures/fig_1_hero_bar.png)
+*Figure 1: PD vs Aggregated max sustainable QPS under SLA across 5 workload scenarios (same GPU count). PD advantage ranges from 1.1x to 1.9x.*
+
 ---
 
 ## Section 3: Core Intuition -- Why PD Works (and When It Doesn't)
@@ -26,7 +31,14 @@ The most common misconception about PD is that it speeds up everything. It does 
 
 **The net effect.** On the same GPU footprint, aggregated consistently achieves equal or lower TTFT than PD.
 
-[Figure 3]: TTFT vs QPS for PD and Agg -- dual panel, one per model. Shows Agg TTFT staying flat while PD TTFT rises under load.
+![Aggregated scheduler timeline](../figures/insight_1_agg_scheduler.png)
+*In aggregated serving, decode tokens consume only ~1.6% of the scheduler's token budget per iteration — TTFT is dominated by prefill compute, not decode contention.*
+
+![PD KV transfer overhead](../figures/insight_1_pd_kv_transfer.png)
+*In PD serving, the KV cache transfer step between prefill and decode nodes adds overhead that inflates TTFT.*
+
+![TTFT vs QPS for PD and Agg](../figures/fig_3_ttft_vs_qps.png)
+*Figure 3: TTFT vs QPS — Agg TTFT stays flat while PD TTFT rises under load.*
 
 Key data points:
 
@@ -58,7 +70,8 @@ This is the core mechanism behind PD's value. In aggregated serving, prefill and
 
 PD eliminates this entirely. Decode runs on dedicated GPUs that never see a prefill token. TPOT stays nearly flat regardless of how much prefill work is happening on other nodes.
 
-[Figure 4]: TPOT vs QPS -- dual panel, one per model. Line chart showing Agg TPOT rising steeply while PD TPOT stays flat. This is the most important chart in the blog.
+![TPOT vs QPS — the death spiral](../figures/fig_4_tpot_vs_qps.png)
+*Figure 4: TPOT vs QPS — Agg TPOT rises steeply ("death spiral") while PD stays flat. The most important chart in this post.*
 
 **Qwen3-235B (TP8, ISL=16K, OSL=1K):**
 
@@ -86,7 +99,8 @@ PD scales more flexibly. You can add prefill or decode capacity independently ba
 - Adding decode replicas extends the QPS at which TPOT starts degrading.
 - Because PD TPOT is fundamentally flatter, each decode replica serves more QPS before hitting SLA limits.
 
-[Figure 5]: QPS capacity vs GPU count -- PD (best config at each GPU count) vs Agg. Shows PD's steeper scaling slope.
+![QPS capacity scaling curve](../figures/fig_5_scaling_curve.png)
+*Figure 5: QPS capacity vs GPU count — PD scales more steeply than Agg.*
 
 | GPUs | Best PD Config | PD Max QPS | Best Agg Config | Agg Max QPS |
 |------|---------------|------------|----------------|-------------|
@@ -160,7 +174,8 @@ The second prefill replica buys 75% more QPS capacity. That is the value of matc
 
 The most common PD pitfall: deploying with a ratio that does not match the workload. This can make PD strictly worse than aggregated on every metric.
 
-[Figure 6]: Bar chart showing E2E for different PD configs vs Agg at QPS=1.5. Dramatically shows how wrong ratio (3P1D) is 67% worse while right ratio (1P3D) is 14% better.
+![Wrong P:D ratio impact](../figures/fig_6_wrong_pd_ratio.png)
+*Figure 6: Wrong P:D ratio can be worse than aggregated — 3P:1D is 67% worse, while 1P:3D is 14% better.*
 
 From our Qwen3-235B experiments (ISL=16K, OSL=4K at QPS=1.5):
 
@@ -215,7 +230,8 @@ These cost savings are real and operational -- fewer nodes provisioned, fewer no
 
 The right deployment mode depends on your workload. There are no universal thresholds -- the breakpoints shift with model, hardware, and traffic patterns. The framework below gives directional guidance; **always benchmark your specific workload** before committing to PD in production.
 
-[Figure 7]: Visual flowchart of the 3-step decision framework below.
+![PD vs Aggregated decision framework](../figures/fig_7_decision_flowchart.png)
+*Figure 7: Decision framework — when to use PD vs Aggregated.*
 
 **Step 1: What is your primary SLA constraint?**
 - **TPOT or E2E** --> PD likely wins. Continue to Step 2.
@@ -357,7 +373,8 @@ For multi-turn workloads, KV cache reuse across turns is critical for performanc
 
 This is currently implemented via `@serve.multiplexed` in our custom app code (`SessionAwareIngress` and `SessionAwareLLMServer` classes in the config above). Native Ray Serve support for session-affinity routing is in progress -- see [RFC link TBD] for the design. Once available, session routing will be a built-in config option rather than a custom implementation.
 
-[Figure 8]: Architecture diagram showing the PD Ray Serve deployment: Ingress (4 replicas) --> Prefill replicas --> KV transfer via RIXL --> Decode replicas. Session-aware routing annotated.
+![PD architecture diagram](../figures/fig_8_pd_architecture.png)
+*Figure 8: Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
 
 ### Coordinated Autoscaling
 
