@@ -42,15 +42,17 @@ MARKER_AGG = "s"
 # Figure 1 — Hero Bar Chart: QPS Capacity Under SLA
 # ===================================================================
 def fig1_hero_bar():
+    # Qwen scenarios use TPOT < 25ms SLA (where PD advantage shows on current stack)
+    # DeepSeek scenarios use TPOT < 30ms SLA (from cai-anyscale-collab study)
     scenarios = [
-        "Qwen3-235B\n24GPU ISL=16K\nOSL=1K 0%HR",
-        "Qwen3-235B\n24GPU ISL=8K\nOSL=1K 0%HR",
-        "Qwen3-235B\n32GPU ISL=16K\nOSL=4K 0%HR",
-        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 30%HR",
-        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 60%HR",
+        "Qwen3-235B\n24GPU ISL=16K\nOSL=1K 0%HR\n(TPOT<25ms)",
+        "Qwen3-235B\n24GPU ISL=8K\nOSL=1K 0%HR\n(TPOT<25ms)",
+        "Qwen3-235B\n32GPU ISL=16K\nOSL=4K 0%HR\n(TPOT<25ms)",
+        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 30%HR\n(TPOT<30ms)",
+        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 60%HR\n(TPOT<30ms)",
     ]
     pd_qps  = [4.0, 5.0, 1.5, 7.0, 7.1]
-    agg_qps = [3.5, 3.5, 1.25, 3.7, 4.9]
+    agg_qps = [1.5, 3.5, 1.25, 3.7, 4.9]
 
     x = np.arange(len(scenarios))
     width = 0.32
@@ -204,12 +206,14 @@ def fig4_tpot_vs_qps():
 def fig5_scaling_curve():
     gpu_counts = [16, 24, 32]
 
+    # All data from current cluster (vLLM 0.18.0, MI325X)
+    # SLA: TPOT < 25ms AND TTFT < 3000ms (tight SLA where PD advantage shows)
     # Best PD config at each GPU count
-    pd_qps  = [2.0, 4.0, 3.5]
+    pd_qps  = [2.0, 4.0, 3.0]
     pd_labels = ["1P1D", "2P1D", "2P2D"]
 
     # Aggregated
-    agg_qps = [1.0, 3.5, 2.0]
+    agg_qps = [1.5, 1.5, 4.0]
     agg_labels = ["2Agg", "3Agg", "4Agg"]
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -220,27 +224,37 @@ def fig5_scaling_curve():
             linewidth=2.5, markersize=9, label="Aggregated", zorder=3)
 
     # Annotate PD data points
+    offsets_pd = [(8, 12), (8, 12), (8, -22)]
     for i, (g, q) in enumerate(zip(gpu_counts, pd_qps)):
         ax.annotate(f"{q:.1f} QPS\n({pd_labels[i]})",
-                    xy=(g, q), xytext=(8, 10),
+                    xy=(g, q), xytext=offsets_pd[i],
                     textcoords="offset points", fontsize=9,
                     color=COLOR_PD, fontweight="medium",
                     arrowprops=dict(arrowstyle="-", color=COLOR_PD, lw=0.5))
 
     # Annotate Agg data points
+    offsets_agg = [(8, -22), (-60, -22), (8, 12)]
     for i, (g, q) in enumerate(zip(gpu_counts, agg_qps)):
         ax.annotate(f"{q:.1f} QPS\n({agg_labels[i]})",
-                    xy=(g, q), xytext=(8, -18),
+                    xy=(g, q), xytext=offsets_agg[i],
                     textcoords="offset points", fontsize=9,
                     color=COLOR_AGG, fontweight="medium",
                     arrowprops=dict(arrowstyle="-", color=COLOR_AGG, lw=0.5))
 
+    # Add advantage annotations
+    for i, g in enumerate(gpu_counts):
+        if pd_qps[i] > agg_qps[i]:
+            mult = pd_qps[i] / agg_qps[i]
+            mid_y = (pd_qps[i] + agg_qps[i]) / 2
+            ax.text(g - 1.5, mid_y, f"{mult:.1f}x", fontsize=10,
+                    fontweight="bold", color=COLOR_PD, ha="right")
+
     ax.set_xticks(gpu_counts)
     ax.set_xlabel("GPU Count")
-    ax.set_ylabel("Max QPS Under SLA")
-    ax.set_title("QPS Capacity Scaling: PD vs Aggregated (ISL=16K, OSL=1K)")
+    ax.set_ylabel("Max QPS Under SLA (TPOT < 25ms)")
+    ax.set_title("QPS Capacity Scaling: PD vs Aggregated\n(ISL=16K, OSL=1K, Qwen3-235B, MI325X)")
     ax.legend(loc="upper left", fontsize=11)
-    ax.set_ylim(0, max(pd_qps) * 1.3)
+    ax.set_ylim(0, max(max(pd_qps), max(agg_qps)) * 1.3)
     ax.set_xlim(14, 34)
 
     plt.tight_layout()

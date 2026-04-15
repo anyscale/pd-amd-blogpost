@@ -46,6 +46,24 @@ LLMConfig._infer_supports_vision = _safe_infer_supports_vision
 LLMConfig._set_model_architecture = _safe_set_model_architecture
 # --- End monkey-patch ---
 
+# --- Monkey-patch: transformers 5.x Qwen3MoeConfig attribute_map compat ---
+# transformers >= 5.x remaps 'num_experts' -> 'num_local_experts' via attribute_map.
+# vLLM 0.18.0 accesses config.num_experts directly, which breaks in subprocesses
+# when the __getattribute__ override doesn't work as expected. Remove the remap
+# so that 'num_experts' stays as a real attribute on the config instance.
+try:
+    from transformers.models.qwen3_moe.configuration_qwen3_moe import (
+        Qwen3MoeConfig as _Qwen3MoeConfig,
+    )
+    if hasattr(_Qwen3MoeConfig, 'attribute_map') and 'num_experts' in _Qwen3MoeConfig.attribute_map:
+        _Qwen3MoeConfig.attribute_map = {
+            k: v for k, v in _Qwen3MoeConfig.attribute_map.items()
+            if k != 'num_experts'
+        }
+except Exception:
+    pass
+# --- End Qwen3MoeConfig compat ---
+
 from ray.llm._internal.common.dict_utils import maybe_apply_llm_deployment_config_defaults
 from ray.llm._internal.serve.core.configs.openai_api_models import (
     ChatCompletionRequest,
