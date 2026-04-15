@@ -1,61 +1,40 @@
-# Aggregated — Qwen3-235B-A22B  (3 replicas, TP8/EP8, fp8)
-#
-# 3 independent replicas with no PD disaggregation.
-# 3 replicas x TP8 = 24 GPUs (3 nodes).
-#
-# Local:    serve run serve_configs/agg/qwen235b_3agg_tp8.yaml --app-dir ../..
-# Anyscale: anyscale service deploy -f serve_configs/agg/qwen235b_3agg_tp8.yaml
+# Aggregated — Qwen3-235B-A22B-FP8 (3 replicas, TP8/EP8)
+# 24 GPUs (3 nodes). Agg baseline for 24-GPU comparisons.
+# Used for: EXP-1a, EXP-1c, EXP-1d, EXP-3h
 
-# --- Ray Serve config (used by both `serve run` and `anyscale service deploy`) ---
 applications:
-  - name: aggregated-qwen235b
-    import_path: ray.serve.llm:build_openai_app
-    route_prefix: /
-
-    args:
-      llm_configs:
-        - model_loading_config:
-            model_id: test-model
-            model_source: Qwen/Qwen3-235B-A22B-Instruct-2507
-          server_cls: pd_app.SessionAwareLLMServer
-          engine_kwargs:
-            tensor_parallel_size: 8
-            enable_expert_parallel: true
-            enable_prefix_caching: false
-            max_model_len: 16384
-            gpu_memory_utilization: 0.7
-            max_num_batched_tokens: 32768
-            kv_cache_dtype: fp8
-            quantization: fp8
-            load_format: dummy
-          experimental_configs:
-            max_sessions_per_replica: 1000
-          deployment_config:
-            autoscaling_config:
-              min_replicas: 3
-              max_replicas: 3
-            logging_config:
-              enable_access_log: false
-          runtime_env:
-            env_vars:
-              SAFETENSORS_FAST_GPU: "1"
-              VLLM_ROCM_USE_AITER: "1"
-              VLLM_ROCM_USE_AITER_MOE: "1"
-              UCX_TLS: "rc,sm,self,rocm_copy,rocm_ipc"
-              UCX_NET_DEVICES: "mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1"
-              VLLM_ROCM_QUICK_REDUCE_QUANTIZATION: "INT4"
-              VLLM_ROCM_QUICK_REDUCE_CAST_BF16_TO_FP16: "1"
-              VLLM_MOE_ROUTING_SIMULATION_STRATEGY: uniform_random
-
-      ingress_deployment_config:
-        autoscaling_config:
-          min_replicas: 1
-          max_replicas: 1
-
-      ingress_cls_config:
-        ingress_cls: pd_app.SessionAwareIngress
-
-# --- Anyscale-only fields (ignored by `serve run`) ---
+- name: aggregated-qwen235b
+  import_path: ray.serve.llm:build_openai_app
+  route_prefix: /
+  args:
+    llm_configs:
+    - model_loading_config:
+        model_id: qwen3-235b
+        model_source: Qwen/Qwen3-235B-A22B-FP8
+      engine_kwargs:
+        tensor_parallel_size: 8
+        enable_expert_parallel: true
+        enable_prefix_caching: false
+        max_model_len: 40960
+        kv_cache_dtype: fp8
+        load_format: dummy
+        max_num_batched_tokens: 32768
+      deployment_config:
+        num_replicas: 3
+        logging_config:
+          enable_access_log: false
+      runtime_env:
+        env_vars:
+          SAFETENSORS_FAST_GPU: '1'
+          VLLM_ROCM_USE_AITER: '1'
+          VLLM_ROCM_USE_AITER_MOE: '1'
+          UCX_TLS: rc,sm,self,rocm_copy,rocm_ipc
+          UCX_NET_DEVICES: mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1
+          VLLM_MOE_ROUTING_SIMULATION_STRATEGY: uniform_random
+    ingress_deployment_config:
+      autoscaling_config:
+        min_replicas: 16
+        max_replicas: 16
 name: qwen235b_agg_3_tp8_service
 working_dir: .
 cloud: amd2
@@ -63,17 +42,15 @@ compute_config: amd-short-autoscale-2-10
 image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700
 query_auth_token_enabled: false
 env_vars:
-  RAY_SERVE_ENABLE_HA_PROXY: "1"
-  RAY_SERVE_THROUGHPUT_OPTIMIZED: "1"
-  RAY_SERVE_HAPROXY_TCP_NODELAY: "0"
-  RAY_SERVE_RUN_ROUTER_IN_SEPARATE_LOOP: "1"
-  SAFETENSORS_FAST_GPU: "1"
-  VLLM_ROCM_USE_AITER: "1"
-  VLLM_ROCM_USE_AITER_MOE: "1"
-  VLLM_USE_TRITON_FLASH_ATTN: "0"
-  UCX_TLS: "rc_mlx5,ud_mlx5,dc_mlx5"
-  UCX_NET_DEVICES: "mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1"
-  UCX_MEM_MMAP_HOOK_MODE: "none"
-  VLLM_ROCM_QUICK_REDUCE_QUANTIZATION: "INT4"
-  VLLM_ROCM_QUICK_REDUCE_CAST_BF16_TO_FP16: "1"
-  VLLM_MOE_ROUTING_SIMULATION_STRATEGY: "uniform_random"
+  RAY_SERVE_ENABLE_HA_PROXY: '1'
+  RAY_SERVE_THROUGHPUT_OPTIMIZED: '1'
+  RAY_SERVE_HAPROXY_TCP_NODELAY: '0'
+  RAY_SERVE_RUN_ROUTER_IN_SEPARATE_LOOP: '1'
+  SAFETENSORS_FAST_GPU: '1'
+  VLLM_ROCM_USE_AITER: '1'
+  VLLM_ROCM_USE_AITER_MOE: '1'
+  VLLM_USE_TRITON_FLASH_ATTN: '0'
+  UCX_TLS: rc_mlx5,ud_mlx5,dc_mlx5
+  UCX_NET_DEVICES: mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1
+  UCX_MEM_MMAP_HOOK_MODE: none
+  VLLM_ROCM_QUICK_REDUCE_CAST_BF16_TO_FP16: '1'
