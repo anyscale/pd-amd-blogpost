@@ -301,7 +301,6 @@ PD disaggregation on Ray + vLLM delivers **1.3--2.3x more QPS** under the same G
 - **PD wins** when your SLA is TPOT- or E2E-sensitive and output is long enough for per-token savings to compound.
 - **Aggregated wins** when TTFT is the binding constraint, output is short, or cache hit rates are high enough to eliminate prefill-decode contention.
 - **The P:D ratio matters.** Get it wrong and PD is 67% worse than Agg. Get it right and it's 2.3x better.
-- **AMD MI325X is first-class** for PD via RIXL -- same `NixlConnector` config as NVIDIA, zero code changes.
 - **Ray Serve makes it a YAML swap**, not a rewrite. Deploy, benchmark, iterate.
 
 ### Get Started
