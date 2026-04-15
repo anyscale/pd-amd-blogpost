@@ -1,4 +1,4 @@
-cloud: amd2
+cloud: REPLACE_WITH_YOUR_CLOUD
 head_node:
   instance_type: 66C-531G
   resources:

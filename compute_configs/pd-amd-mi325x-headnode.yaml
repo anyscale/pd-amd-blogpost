@@ -1,4 +1,4 @@
-cloud: amd2
+cloud: REPLACE_WITH_YOUR_CLOUD
 head_node:
   instance_type: 132C-1062G-8xMI325X
   advanced_instance_config:
