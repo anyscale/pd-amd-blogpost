@@ -35,20 +35,7 @@ RUNTIME_ENV = {
     }
 }
 
-SERVICE_ENV_VARS = {
-    "RAY_SERVE_ENABLE_HA_PROXY": "1",
-    "RAY_SERVE_THROUGHPUT_OPTIMIZED": "1",
-    "RAY_SERVE_HAPROXY_TCP_NODELAY": "0",
-    "RAY_SERVE_RUN_ROUTER_IN_SEPARATE_LOOP": "1",
-    "SAFETENSORS_FAST_GPU": "1",
-    "VLLM_ROCM_USE_AITER": "1",
-    "VLLM_ROCM_USE_AITER_MOE": "1",
-    "VLLM_USE_TRITON_FLASH_ATTN": "0",
-    "UCX_TLS": "rc_mlx5,ud_mlx5,dc_mlx5",
-    "UCX_NET_DEVICES": "mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1",
-    "UCX_MEM_MMAP_HOOK_MODE": "none",
-    "VLLM_ROCM_QUICK_REDUCE_CAST_BF16_TO_FP16": "1",
-}
+# No service-level env vars needed — runtime env vars are set per-deployment.
 
 IMAGE_URI = "kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
 CLOUD = "amd2"
@@ -128,8 +115,8 @@ def make_pd_config(name: str, num_prefill: int, num_decode: int,
         "cloud": CLOUD,
         "compute_config": COMPUTE_CONFIG,
         "image_uri": IMAGE_URI,
-        "query_auth_token_enabled": False,
-        "env_vars": SERVICE_ENV_VARS,
+
+
     }
     return config
 
@@ -176,8 +163,8 @@ def make_agg_config(name: str, num_replicas: int,
         "cloud": CLOUD,
         "compute_config": COMPUTE_CONFIG,
         "image_uri": IMAGE_URI,
-        "query_auth_token_enabled": False,
-        "env_vars": SERVICE_ENV_VARS,
+
+
     }
     return config
 
