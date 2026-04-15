@@ -1,0 +1,183 @@
+{
+  "config": {
+    "concurrency": null,
+    "request_rate": 0.75
+  },
+  "spec": {
+    "num_sessions": 10,
+    "duration_s": 0.0,
+    "num_turns": 1,
+    "osl": 4096,
+    "think_time": 0.0,
+    "concurrency": null,
+    "request_rate": 0.75,
+    "shared_system_prompt_ratio": 1.0,
+    "user_tokens_per_turn": 16000,
+    "system_prompt_tokens": 0,
+    "shared_system_prompt": 0,
+    "unique_system_prompt": 0,
+    "effective_isl": 16000.0,
+    "effective_hit_rate": 0.0,
+    "per_turn": [
+      {
+        "turn": 1,
+        "total": 16000,
+        "cached": 0,
+        "new": 16000,
+        "hit_rate": 0.0
+      }
+    ]
+  },
+  "first_chunk_threshold": 16,
+  "benchmark": {
+    "total_requests": 10,
+    "duration_s": 13.33,
+    "warmup_s": 0,
+    "discarded_warmup_requests": 0
+  },
+  "stats": {
+    "throughput_tok_s": 3072.0,
+    "measured_request_rate": 0.75,
+    "avg_input_tokens": 16008,
+    "avg_output_tokens": 4096,
+    "avg_ttft_ms": 591.86,
+    "p50_ttft_ms": 578.01,
+    "p90_ttft_ms": 618.23,
+    "p99_ttft_ms": 620.75,
+    "avg_fc_ms": 909.83,
+    "p50_fc_ms": 818.37,
+    "p90_fc_ms": 1321.21,
+    "p99_fc_ms": 1353.2,
+    "avg_tpot_ms": 17.73,
+    "p50_tpot_ms": 18.06,
+    "p90_tpot_ms": 18.32,
+    "p99_tpot_ms": 18.34,
+    "avg_latency_ms": 73213.06
+  },
+  "per_turn": [
+    {
+      "turn": 1,
+      "count": 10,
+      "avg_isl": 16008,
+      "avg_ttft_ms": 591.86,
+      "avg_fc_ms": 909.83,
+      "avg_tpot_ms": 17.73,
+      "p50_fc_ms": 818.37,
+      "p99_ttft_ms": 620.75,
+      "p99_fc_ms": 1353.2,
+      "p99_tpot_ms": 18.34
+    }
+  ],
+  "raw_metrics": [
+    {
+      "session_id": "session-000001",
+      "turn": 0,
+      "ttft_ms": 621.03,
+      "fc_ms": 820.45,
+      "tpot_ms": 16.63,
+      "latency_ms": 68714.96,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 1461.69
+    },
+    {
+      "session_id": "session-000000",
+      "turn": 0,
+      "ttft_ms": 571.84,
+      "fc_ms": 821.5,
+      "tpot_ms": 18.11,
+      "latency_ms": 74715.14,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 60.11
+    },
+    {
+      "session_id": "session-000004",
+      "turn": 0,
+      "ttft_ms": 617.47,
+      "fc_ms": 818.16,
+      "tpot_ms": 16.79,
+      "latency_ms": 69392.14,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 5458.44
+    },
+    {
+      "session_id": "session-000006",
+      "turn": 0,
+      "ttft_ms": 617.92,
+      "fc_ms": 818.58,
+      "tpot_ms": 16.87,
+      "latency_ms": 69683.04,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 8147.81
+    },
+    {
+      "session_id": "session-000002",
+      "turn": 0,
+      "ttft_ms": 576.58,
+      "fc_ms": 776.02,
+      "tpot_ms": 18.22,
+      "latency_ms": 75184.36,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 2794.69
+    },
+    {
+      "session_id": "session-000003",
+      "turn": 0,
+      "ttft_ms": 578.66,
+      "fc_ms": 777.85,
+      "tpot_ms": 18.13,
+      "latency_ms": 74824.53,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 4125.18
+    },
+    {
+      "session_id": "session-000005",
+      "turn": 0,
+      "ttft_ms": 577.36,
+      "fc_ms": 1356.75,
+      "tpot_ms": 18.32,
+      "latency_ms": 75592.16,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 6791.9
+    },
+    {
+      "session_id": "session-000007",
+      "turn": 0,
+      "ttft_ms": 614.46,
+      "fc_ms": 815.77,
+      "tpot_ms": 18.02,
+      "latency_ms": 74391.52,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 9466.95
+    },
+    {
+      "session_id": "session-000008",
+      "turn": 0,
+      "ttft_ms": 575.22,
+      "fc_ms": 775.94,
+      "tpot_ms": 17.92,
+      "latency_ms": 73946.92,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 10800.71
+    },
+    {
+      "session_id": "session-000009",
+      "turn": 0,
+      "ttft_ms": 568.05,
+      "fc_ms": 1317.26,
+      "tpot_ms": 18.34,
+      "latency_ms": 75685.83,
+      "input_tokens": 16008,
+      "output_tokens": 4096,
+      "start_time_ms": 12127.09
+    }
+  ]
+}
