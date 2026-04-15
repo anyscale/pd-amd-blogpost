@@ -28,26 +28,37 @@ BASE_URL="http://localhost:8000"
 
 deploy_and_wait() {
     local config="$1"
+    local max_wait=600  # 10 minutes max
+    local elapsed=0
     echo ">>> Deploying ${config}..."
     cd "${REPO_ROOT}"
     ray serve deploy "serve_configs/${config}" 2>&1
-    echo ">>> Waiting for RUNNING status..."
-    while true; do
-        status=$(ray serve status 2>/dev/null | grep -m1 'status:' | awk '{print $2}')
-        if [ "$status" = "RUNNING" ]; then
-            echo ">>> Service is RUNNING"
+    echo ">>> Waiting for RUNNING status (max ${max_wait}s)..."
+    while [ $elapsed -lt $max_wait ]; do
+        # Look for application-level status (skip proxy status lines)
+        local app_status=$(ray serve status 2>/dev/null | grep -A2 'applications:' | grep 'status:' | head -1 | awk '{print $2}')
+        if [ "$app_status" = "RUNNING" ]; then
+            echo ">>> Service is RUNNING (after ${elapsed}s)"
             break
-        elif [ "$status" = "DEPLOY_FAILED" ]; then
-            echo ">>> DEPLOY_FAILED — aborting"
+        elif [ "$app_status" = "DEPLOY_FAILED" ]; then
+            echo ">>> DEPLOY_FAILED after ${elapsed}s — aborting"
+            ray serve status 2>/dev/null | head -30
             return 1
         fi
-        sleep 10
+        sleep 15
+        elapsed=$((elapsed + 15))
+        echo ">>>   ... waiting (${elapsed}s, app_status='${app_status}')"
     done
+    if [ $elapsed -ge $max_wait ]; then
+        echo ">>> Timed out waiting for service after ${max_wait}s"
+        ray serve status 2>/dev/null | head -30
+        return 1
+    fi
     # Extra settle time for vLLM engine warm-up
     sleep 15
     # Smoke test
     echo ">>> Smoke test..."
-    ${BENCHMARK} -u ${BASE_URL} -m ${MODEL} --tokenizer ${TOKENIZER} -s 2>&1 | tail -3
+    ${BENCHMARK} -u ${BASE_URL} -m ${MODEL} --tokenizer ${TOKENIZER} -s 2>&1 | tail -5
 }
 
 shutdown_service() {
