@@ -75,11 +75,11 @@ def fig1_hero_bar():
             "pd_config": "2P:2D TP8", "pd_qps": 3.0,
             "agg_config": "4×Agg TP8", "agg_qps": 4.0,
         },
-        {   # PD loses case: high hit rate warm workload
-            "label": "Qwen3-235B\n32 GPU, ISL=16K\nOSL=4K, 0% HR",
+        {   # PD neutral case: high hit rate makes prefill cheap
+            "label": "Qwen3-235B\n24 GPU, ISL=8K\nOSL=1K, 60% HR",
             "sla": "TPOT < 25ms",
-            "pd_config": "1P:3D TP8", "pd_qps": 1.5,
-            "agg_config": "4×Agg TP8", "agg_qps": 1.25,
+            "pd_config": "1P:2D TP8", "pd_qps": 6.0,
+            "agg_config": "3×Agg TP8", "agg_qps": 6.0,
         },
     ]
 
