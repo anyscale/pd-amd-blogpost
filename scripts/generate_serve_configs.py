@@ -38,8 +38,8 @@ RUNTIME_ENV = {
 # No service-level env vars needed — runtime env vars are set per-deployment.
 
 IMAGE_URI = "kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
-CLOUD = "amd2"
-COMPUTE_CONFIG = "amd-short-autoscale-2-10"
+CLOUD = ""  # Set to your Anyscale cloud name (e.g., "amd2")
+COMPUTE_CONFIG = "pd-amd-mi325x"  # Create via: anyscale compute-config create compute_configs/pd-amd-mi325x.yaml
 
 
 def make_pd_config(name: str, num_prefill: int, num_decode: int,

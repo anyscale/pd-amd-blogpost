@@ -67,6 +67,6 @@ applications:
         enable_access_log: false
 name: qwen235b_pd_2p1d_tp8_service
 working_dir: .
-cloud: amd2
-compute_config: amd-short-autoscale-2-10
+cloud: ''
+compute_config: pd-amd-mi325x
 image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700
