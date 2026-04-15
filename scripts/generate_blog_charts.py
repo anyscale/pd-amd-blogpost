@@ -517,10 +517,10 @@ def fig4b_tpot_compounding():
                 f"{h:.0f}s", ha="center", va="center", fontsize=9,
                 color="white", fontweight="bold")
 
-    # Annotate % improvement centered above each pair — uniform y position
-    label_y = max(agg_e2e) * 1.05  # all labels at same height
+    # Annotate % improvement centered above each pair — small fixed offset
     for i in range(len(osls)):
-        ax.text(x[i], label_y,
+        top = max(agg_e2e[i], pd_e2e[i])
+        ax.text(x[i], top + 2.5,
                 f"PD {pct_win[i]:.0f}% faster",
                 ha="center", va="bottom", fontsize=10.5, fontweight="bold",
                 color=COLOR_WINNER,
