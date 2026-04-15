@@ -42,36 +42,34 @@ IMAGE="kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
 docker build --platform linux/amd64 -t $IMAGE .
 ```
 
-**2. Create a compute config on Anyscale:**
-
-Edit `compute_configs/pd-amd-mi325x-autoscale.yaml` to set your cloud name, then register it:
+**2. Find your Anyscale cloud name:**
 
 ```bash
-# Edit the cloud field in the compute config
-sed -i 's/cloud: amd2/cloud: YOUR_CLOUD_NAME/' compute_configs/pd-amd-mi325x-autoscale.yaml
+# List available clouds — pick the one with your AMD MI325X nodes
+anyscale cloud list
 
-# Create the compute config on Anyscale
-anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --name pd-amd-mi325x
+# Grab the default cloud name automatically:
+CLOUD=$(anyscale cloud list 2>/dev/null | awk '/True/ {print $1; exit}')
+echo "Using cloud: $CLOUD"
 ```
 
-**3. Update serve configs with your cloud and compute config:**
-
-Edit the bottom of any serve config YAML:
-
-```yaml
-cloud: YOUR_CLOUD_NAME
-compute_config: pd-amd-mi325x
-image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700
-```
-
-Or regenerate all configs at once:
+**3. Create a compute config on Anyscale:**
 
 ```bash
-# Edit CLOUD and COMPUTE_CONFIG in scripts/generate_serve_configs.py, then:
+# Set the cloud name in the compute config and register it
+sed "s/cloud: amd2/cloud: $CLOUD/" compute_configs/pd-amd-mi325x-autoscale.yaml \
+  | anyscale compute-config create - --name pd-amd-mi325x
+```
+
+**4. Update serve configs with your cloud:**
+
+```bash
+# Set CLOUD in the generator and regenerate all configs:
+sed -i "s/^CLOUD = .*/CLOUD = \"$CLOUD\"/" scripts/generate_serve_configs.py
 python scripts/generate_serve_configs.py
 ```
 
-**4. Deploy:**
+**5. Deploy:**
 
 ```bash
 anyscale service deploy -f serve_configs/pd/qwen235b_2p1d_tp8.yaml
