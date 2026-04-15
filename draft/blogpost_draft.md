@@ -49,7 +49,7 @@ Could you solve the TTFT gap by adding more prefill GPUs? Generally, no. TTFT im
 If your SLA is measured purely on time-to-first-token (e.g., interactive search, auto-complete), aggregated will consistently beat PD. As Figure 3 shows, PD's TTFT baseline on DeepSeek-V3 is ~330ms (due to KV transfer overhead), while Agg stays at ~260ms across all QPS levels:
 
 - Under a **TTFT < 300ms** SLA, PD **cannot serve any traffic** (baseline TTFT exceeds the target), while Agg sustains **7.0+ QPS**.
-- Under a **TTFT < 500ms** SLA, Agg sustains **7.0+ QPS** vs PD's **5.0 QPS** -- Agg wins by 1.4x.
+- Under a **TTFT < 500ms** SLA, Agg sustains **7.0+ QPS** vs PD's **5.0 QPS** -- Agg wins by at least 1.4x.
 
 Agg's advantage here is structural: no KV transfer step, and prefill load is naturally distributed across replicas. If you need *both* fast TTFT and fast TPOT, consider accepting a slightly relaxed TTFT target -- even a small relaxation can unlock major TPOT and E2E improvements through PD.
 
@@ -84,27 +84,6 @@ PD eliminates this entirely. Decode runs on dedicated GPUs that never see a pref
 | 7 | 50.6ms | 27.3ms | **1.9x** |
 
 The pattern is striking: PD's TPOT stays well-controlled (~22--27ms across the entire QPS range for DeepSeek-V3), while Agg's TPOT degrades linearly with load.
-
-**How Agg vs PD scale differently.** Scaling aggregated is linear and coarse-grained: each Agg replica provides limited QPS headroom before TPOT collapses. From our Qwen3-235B experiments: 2x Agg hits the SLA ceiling at QPS ~1.5, 3x Agg at QPS ~1.5 (limited by per-replica saturation). To meaningfully increase QPS capacity, you need to add replicas and GPUs.
-
-PD scales more flexibly. You can add prefill or decode capacity independently based on the bottleneck:
-- Adding prefill replicas extends the QPS at which TTFT starts degrading, without affecting TPOT.
-- Adding decode replicas extends the QPS at which TPOT starts degrading.
-- Because PD TPOT is fundamentally flatter, each decode replica serves more QPS before hitting SLA limits.
-
-![QPS capacity scaling curve](../figures/fig_5_scaling_curve.png)
-*Figure 5: QPS capacity vs GPU count — PD scales more steeply than Agg.*
-
-| GPUs | Best PD Config | PD Max QPS | Best Agg Config | Agg Max QPS |
-|------|---------------|------------|----------------|-------------|
-| 16 | 1P1D | 2.0 | 2Agg | 1.5 |
-| 24 | 2P1D | 4.0 | 3Agg | 1.5 |
-
-From our Qwen3-235B data (TP8, ISL=16K, OSL=1K, SLA: TPOT < 25ms):
-- 1P1D (16 GPU): sustains 2.0 QPS vs 2Agg's 1.5 QPS -- **PD 1.33x advantage**
-- 2P1D (24 GPU): sustains 4.0 QPS vs 3Agg's 1.5 QPS -- **PD 2.67x advantage**
-
-PD's asymmetric scaling means each additional GPU goes where it matters most, rather than duplicating the entire serving stack.
 
 ---
 
