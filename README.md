@@ -29,9 +29,8 @@ docker build --platform linux/amd64 -t $IMAGE .
 # List available clouds — pick the one with your AMD MI325X nodes
 anyscale cloud list --no-interactive
 
-# Grab the default cloud name automatically:
-CLOUD=$(anyscale cloud list --json --no-interactive 2>/dev/null \
-  | python3 -c "import sys,json; clouds=json.load(sys.stdin); print(next((c['name'] for c in clouds if c.get('is_default')), clouds[0]['name'] if clouds else ''))")
+# Grab the first cloud name:
+CLOUD=$(anyscale cloud list --json --no-interactive | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])")
 echo "Using cloud: $CLOUD"
 ```
 
