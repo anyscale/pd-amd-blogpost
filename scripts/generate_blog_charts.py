@@ -505,35 +505,27 @@ def fig4b_tpot_compounding():
     bars_pd = ax.bar(x + width / 2, pd_e2e, width, color=COLOR_PD,
                       edgecolor="white", linewidth=0.5, label="PD (2P:1D)", zorder=3)
 
-    # Label bar values
+    # Label bar values inside bars (bottom)
     for bar in bars_agg:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
-                f"{h:.0f}s", ha="center", va="bottom", fontsize=9, color=COLOR_AGG)
+        ax.text(bar.get_x() + bar.get_width() / 2, h * 0.5,
+                f"{h:.0f}s", ha="center", va="center", fontsize=9,
+                color="white", fontweight="bold")
     for bar in bars_pd:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
-                f"{h:.0f}s", ha="center", va="bottom", fontsize=9, color=COLOR_PD)
+        ax.text(bar.get_x() + bar.get_width() / 2, h * 0.5,
+                f"{h:.0f}s", ha="center", va="center", fontsize=9,
+                color="white", fontweight="bold")
 
-    # Annotate % improvement with arrow between each pair
+    # Annotate % improvement centered above each pair
     for i in range(len(osls)):
-        hi = agg_e2e[i]
-        lo = pd_e2e[i]
-        bracket_x = x[i] + width / 2 + width * 0.55
-
-        ax.plot([x[i] + width / 2 + width * 0.05, bracket_x + 0.03], [hi, hi],
-                color=COLOR_WINNER, linestyle=":", linewidth=1.0, alpha=0.5)
-        ax.plot([x[i] + width / 2 + width * 0.05, bracket_x + 0.03], [lo, lo],
-                color=COLOR_WINNER, linestyle=":", linewidth=1.0, alpha=0.5)
-
-        ax.annotate("", xy=(bracket_x, lo), xytext=(bracket_x, hi),
-                     arrowprops=dict(arrowstyle="<->", color=COLOR_WINNER, lw=1.8,
-                                     shrinkA=1, shrinkB=1))
-
-        ax.text(bracket_x + 0.08, (hi + lo) / 2,
-                f"{pct_win[i]:.0f}%\nfaster",
-                ha="left", va="center", fontsize=9, fontweight="bold",
-                color=COLOR_WINNER)
+        top = max(agg_e2e[i], pd_e2e[i])
+        ax.text(x[i], top + top * 0.06,
+                f"PD {pct_win[i]:.0f}% faster",
+                ha="center", va="bottom", fontsize=10.5, fontweight="bold",
+                color=COLOR_WINNER,
+                bbox=dict(boxstyle="round,pad=0.2", facecolor="white",
+                          edgecolor=COLOR_WINNER, alpha=0.9, linewidth=0.8))
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
