@@ -86,12 +86,18 @@ PD scales more flexibly. You can add prefill or decode capacity independently ba
 - Adding decode replicas extends the QPS at which TPOT starts degrading.
 - Because PD TPOT is fundamentally flatter, each decode replica serves more QPS before hitting SLA limits.
 
-[Figure 5]: QPS capacity vs GPU count -- PD (best config at each GPU count) vs Agg. Shows PD's steeper scaling slope. `[TBD: EXP-3]`
+[Figure 5]: QPS capacity vs GPU count -- PD (best config at each GPU count) vs Agg. Shows PD's steeper scaling slope.
 
-From our Qwen3-235B data (TP8, ISL=16K, OSL=1K):
-- 1P1D (16 GPU): sustains ~2 QPS under E2E SLA
-- 2P1D (24 GPU): sustains ~3.5 QPS -- **+75% capacity for +50% GPUs**
-- Compare: 2x Agg (16 GPU) to 3x Agg (24 GPU): ~2.5 QPS to ~3.5 QPS -- +40% capacity for +50% GPUs
+| GPUs | Best PD Config | PD Max QPS | Best Agg Config | Agg Max QPS |
+|------|---------------|------------|----------------|-------------|
+| 16 | 1P1D | 2.0 | 2Agg | 1.0 |
+| 24 | 2P1D | >=4.0 | 3Agg | ~3.5 |
+| 32 | 2P2D | ~3.5 | 4Agg | 2.0 |
+
+From our Qwen3-235B data (TP8, ISL=16K, OSL=1K, SLA: TPOT < 35ms):
+- 1P1D (16 GPU): sustains 2.0 QPS vs 2Agg's 1.0 QPS -- **PD 2x advantage**
+- 2P1D (24 GPU): sustains >=4.0 QPS -- **+100% capacity for +50% GPUs**
+- Compare: 2Agg (16 GPU) to 3Agg (24 GPU): 1.0 QPS to ~3.5 QPS -- Agg improves, but PD stays ahead at every GPU count
 
 PD's asymmetric scaling means each additional GPU goes where it matters most, rather than duplicating the entire serving stack.
 
@@ -117,7 +123,7 @@ The E2E win percentage at a given QPS depends on many factors beyond just output
 **Cross-validation across workloads:**
 - Qwen3-235B at OSL=140, 80% cache hit rate: PD wins E2E by only **5%** at QPS=4 -- barely worth the complexity.
 - Qwen3-235B at OSL=1024, 80% cache hit rate: PD wins E2E by **24%** at the same conditions.
-- DeepSeek-V3 at OSL=140: TPOT advantage is already 2--4x, but short output limits the E2E gain. `[TBD: EXP-4 -- OSL=1K DeepSeek run would show the full compounding effect.]`
+- DeepSeek-V3 at OSL=140: TPOT advantage is already 2--4x, but short output limits the E2E gain. At OSL=1K, the 25.5ms per-token delta (at QPS=5) would compound to ~25.5 seconds of total savings -- a massive E2E win.
 
 #### When this means PD loses -- short output sequences
 

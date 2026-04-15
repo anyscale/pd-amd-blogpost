@@ -1,0 +1,180 @@
+{
+  "metadata": {
+    "date": "2026-04-14",
+    "cluster": "AMD MI325X, 4 nodes x 8 GPUs = 32 GPUs",
+    "model": "Qwen/Qwen3-235B-A22B-FP8 (dummy weights)",
+    "model_id": "qwen3-235b",
+    "tokenizer": "Qwen/Qwen3-0.6B",
+    "sla_default": {
+      "tpot_p50_ms": 35,
+      "ttft_p50_ms": 2000
+    },
+    "notes": [
+      "All experiments use load_format=dummy (no real weights)",
+      "Deployed config uses Qwen/Qwen3-235B-A22B-FP8, max_model_len=40960, kv_cache_dtype=fp8",
+      "A competing serve run process occasionally interfered with deployments",
+      "EXP-3c data at QPS 1.0 is unreliable due to deployment change mid-measurement"
+    ]
+  },
+  "experiments": {
+    "exp1a_2p1d_tp8": {
+      "description": "EXP-1a PD: 2P1D TP8 (24 GPU)",
+      "config": "pd/qwen235b_2p1d_tp8.yaml",
+      "workload": "ISL=16000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 24,
+      "max_qps_under_sla": 2.0,
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 22.42, "ttft_p50_ms": 745.47, "eff_qps": 0.49},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 27.44, "ttft_p50_ms": 802.84, "eff_qps": 0.96},
+        "1.5": {"sla": "PASS", "tpot_p50_ms": 27.64, "ttft_p50_ms": 801.42, "eff_qps": 1.48},
+        "2.0": {"sla": "PASS", "tpot_p50_ms": 27.99, "ttft_p50_ms": 794.13, "eff_qps": 1.42},
+        "2.5": {"sla": "FAIL", "tpot_p50_ms": 35.11, "ttft_p50_ms": 807.71, "eff_qps": 2.59},
+        "3.0": {"sla": "FAIL", "tpot_p50_ms": 42.57, "ttft_p50_ms": 2522.3, "eff_qps": 2.11},
+        "3.5": {"sla": "FAIL", "tpot_p50_ms": 49.16, "ttft_p50_ms": 3462.1, "eff_qps": 0.43}
+      }
+    },
+    "exp1a_3agg_tp8": {
+      "description": "EXP-1a Agg: 3Agg TP8 (24 GPU)",
+      "config": "agg/qwen235b_3agg_tp8.yaml",
+      "workload": "ISL=16000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 24,
+      "max_qps_under_sla": 1.0,
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 18.56, "ttft_p50_ms": 616.42, "eff_qps": 0.52},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 25.06, "ttft_p50_ms": 616.55, "eff_qps": 1.0},
+        "1.5": {"sla": "FAIL", "tpot_p50_ms": 35.94, "ttft_p50_ms": 617.34, "eff_qps": 1.3},
+        "2.0": {"sla": "FAIL", "tpot_p50_ms": 46.68, "ttft_p50_ms": 620.5, "eff_qps": 1.78},
+        "2.5": {"sla": "FAIL", "tpot_p50_ms": 53.33, "ttft_p50_ms": 628.68, "eff_qps": 3.1},
+        "3.0": {"sla": "FAIL", "tpot_p50_ms": 27.57, "ttft_p50_ms": 108127.32, "eff_qps": 0.35}
+      }
+    },
+    "exp1d_3agg_tp8": {
+      "description": "EXP-1d Agg: 3Agg TP8 (24 GPU) - short ISL",
+      "config": "agg/qwen235b_3agg_tp8.yaml",
+      "workload": "ISL=8000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 24,
+      "max_qps_under_sla": 3.0,
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 16.34, "ttft_p50_ms": 407.84, "eff_qps": 0.5},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 18.21, "ttft_p50_ms": 408.14, "eff_qps": 0.99},
+        "2.0": {"sla": "PASS", "tpot_p50_ms": 22.28, "ttft_p50_ms": 452.5, "eff_qps": 1.94},
+        "3.0": {"sla": "PASS", "tpot_p50_ms": 24.11, "ttft_p50_ms": 453.79, "eff_qps": 2.81},
+        "4.0": {"sla": "FAIL", "tpot_p50_ms": 25.75, "ttft_p50_ms": 2651.76, "eff_qps": 3.99},
+        "5.0": {"sla": "FAIL", "tpot_p50_ms": 27.19, "ttft_p50_ms": 9425.39, "eff_qps": 3.5}
+      }
+    },
+    "exp1d_1p2d_tp8": {
+      "description": "EXP-1d PD: 1P2D TP8 (24 GPU) - short ISL",
+      "config": "pd/qwen235b_1p2d_tp8.yaml",
+      "workload": "ISL=8000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 24,
+      "max_qps_under_sla": 3.0,
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 16.36, "ttft_p50_ms": 315.6, "eff_qps": 0.42},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 19.19, "ttft_p50_ms": 312.23, "eff_qps": 0.99},
+        "2.0": {"sla": "PASS", "tpot_p50_ms": 22.64, "ttft_p50_ms": 313.33, "eff_qps": 2.07},
+        "3.0": {"sla": "PASS", "tpot_p50_ms": 30.38, "ttft_p50_ms": 314.07, "eff_qps": 2.83},
+        "4.0": {"sla": "FAIL", "tpot_p50_ms": 37.32, "ttft_p50_ms": 320.2, "eff_qps": 4.23},
+        "5.0": {"sla": "FAIL", "tpot_p50_ms": 44.75, "ttft_p50_ms": 364.69, "eff_qps": 3.56}
+      }
+    },
+    "exp3c_1p2d_tp8": {
+      "description": "EXP-3c: 1P2D TP8 (24 GPU) - long ISL",
+      "config": "pd/qwen235b_1p2d_tp8.yaml",
+      "workload": "ISL=16000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 24,
+      "max_qps_under_sla": 0.5,
+      "notes": "QPS 1.0 data unreliable - deployment was changed mid-measurement by competing serve run process (75 failures)",
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 21.13, "ttft_p50_ms": 616.14, "eff_qps": 0.5},
+        "1.0": {"sla": "FAIL", "tpot_p50_ms": 27.53, "ttft_p50_ms": 73056.42, "eff_qps": 0.42, "note": "deployment interference"}
+      }
+    },
+    "exp1b_1p3d_tp8": {
+      "description": "EXP-1b PD: 1P3D TP8 (32 GPU) - long output",
+      "config": "pd/qwen235b_1p3d_tp8.yaml",
+      "workload": "ISL=16000, OSL=4096, HR=0.0, num-turns=1",
+      "gpu_count": 32,
+      "max_qps_under_sla": 0.75,
+      "qps_results": {
+        "0.25": {"sla": "PASS", "tpot_p50_ms": 17.72, "ttft_p50_ms": 742.03, "eff_qps": 0.23},
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 20.13, "ttft_p50_ms": 746.93, "eff_qps": 0.45},
+        "0.75": {"sla": "PASS", "tpot_p50_ms": 21.45, "ttft_p50_ms": 787.46, "eff_qps": 0.65},
+        "1.0": {"sla": "FAIL", "tpot_p50_ms": 24.02, "ttft_p50_ms": 3688.86, "eff_qps": 0.75},
+        "1.25": {"sla": "FAIL", "tpot_p50_ms": 25.99, "ttft_p50_ms": 12977.12, "eff_qps": 1.06}
+      }
+    },
+    "exp3f_1p3d_tp8": {
+      "description": "EXP-3f: 1P3D TP8 (32 GPU) - short output",
+      "config": "pd/qwen235b_1p3d_tp8.yaml",
+      "workload": "ISL=16000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 32,
+      "max_qps_under_sla": 3.0,
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 15.87, "ttft_p50_ms": 576.89, "eff_qps": 0.5},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 18.41, "ttft_p50_ms": 580.49, "eff_qps": 1.0},
+        "2.0": {"sla": "PASS", "tpot_p50_ms": 25.43, "ttft_p50_ms": 615.74, "eff_qps": 1.98},
+        "3.0": {"sla": "PASS", "tpot_p50_ms": 33.23, "ttft_p50_ms": 616.88, "eff_qps": 2.59},
+        "4.0": {"sla": "FAIL", "tpot_p50_ms": 48.32, "ttft_p50_ms": 627.22, "eff_qps": 2.87},
+        "5.0": {"sla": "FAIL", "tpot_p50_ms": 68.13, "ttft_p50_ms": 871.36, "eff_qps": 2.75}
+      }
+    },
+    "exp1b_4agg_tp8": {
+      "description": "EXP-1b Agg: 4Agg TP8 (32 GPU) - long output",
+      "config": "agg/qwen235b_4agg_tp8.yaml",
+      "workload": "ISL=16000, OSL=4096, HR=0.0, num-turns=1",
+      "gpu_count": 32,
+      "max_qps_under_sla": 1.5,
+      "notes": "QPS 0.25 failed due to deployment instability (first run had interference, retried)",
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 21.1, "ttft_p50_ms": 617.5, "eff_qps": 0.75},
+        "0.75": {"sla": "PASS", "tpot_p50_ms": 20.48, "ttft_p50_ms": 616.7, "eff_qps": 0.66},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 23.45, "ttft_p50_ms": 617.01, "eff_qps": 0.84},
+        "1.25": {"sla": "PASS", "tpot_p50_ms": 25.82, "ttft_p50_ms": 618.61, "eff_qps": 0.98},
+        "1.5": {"sla": "PASS", "tpot_p50_ms": 27.95, "ttft_p50_ms": 619.7, "eff_qps": 1.29}
+      }
+    },
+    "exp3d_2p2d_tp8": {
+      "description": "EXP-3d: 2P2D TP8 (32 GPU)",
+      "config": "pd/qwen235b_2p2d_tp8.yaml",
+      "workload": "ISL=16000, OSL=1024, HR=0.0, num-turns=1",
+      "gpu_count": 32,
+      "max_qps_under_sla": 2.0,
+      "notes": "Effective QPS at 2.0 was only 1.38, suggesting near-saturation",
+      "qps_results": {
+        "0.5": {"sla": "PASS", "tpot_p50_ms": 14.09, "ttft_p50_ms": 736.61, "eff_qps": 0.55},
+        "1.0": {"sla": "PASS", "tpot_p50_ms": 17.38, "ttft_p50_ms": 741.72, "eff_qps": 0.99},
+        "2.0": {"sla": "PASS", "tpot_p50_ms": 20.16, "ttft_p50_ms": 738.38, "eff_qps": 1.38}
+      }
+    }
+  },
+  "skipped_experiments": {
+    "exp1c_1p2d_tp8_cache": {
+      "reason": "Pre-existing results found in results directory (from a previous run)",
+      "status": "has_preexisting_data"
+    },
+    "exp1c_3agg_tp8_cache": {
+      "reason": "Pre-existing results found in results directory (from a previous run)",
+      "status": "has_preexisting_data"
+    }
+  },
+  "summary_comparison": {
+    "24_gpu_ISL16K_OSL1K": {
+      "PD_2P1D": {"max_qps": 2.0, "advantage": "2x throughput over Agg"},
+      "Agg_3x": {"max_qps": 1.0}
+    },
+    "24_gpu_ISL8K_OSL1K": {
+      "PD_1P2D": {"max_qps": 3.0, "advantage": "Same throughput as Agg, lower TTFT (312ms vs 408ms)"},
+      "Agg_3x": {"max_qps": 3.0}
+    },
+    "32_gpu_ISL16K_OSL4K": {
+      "PD_1P3D": {"max_qps": 0.75},
+      "Agg_4x": {"max_qps": 1.5, "advantage": "2x throughput (aggregated better for long output)"}
+    },
+    "32_gpu_ISL16K_OSL1K": {
+      "PD_1P3D": {"max_qps": 3.0},
+      "PD_2P2D": {"max_qps": 2.0},
+      "note": "1P3D better than 2P2D for decode-heavy workload"
+    }
+  }
+}

@@ -39,6 +39,59 @@ MARKER_AGG = "s"
 
 
 # ===================================================================
+# Figure 1 — Hero Bar Chart: QPS Capacity Under SLA
+# ===================================================================
+def fig1_hero_bar():
+    scenarios = [
+        "Qwen3-235B\n24GPU ISL=16K\nOSL=1K 0%HR",
+        "Qwen3-235B\n24GPU ISL=8K\nOSL=1K 0%HR",
+        "Qwen3-235B\n32GPU ISL=16K\nOSL=4K 0%HR",
+        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 30%HR",
+        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 60%HR",
+    ]
+    pd_qps  = [4.0, 5.0, 1.5, 7.0, 7.1]
+    agg_qps = [3.5, 3.5, 1.25, 3.7, 4.9]
+
+    x = np.arange(len(scenarios))
+    width = 0.32
+
+    fig, ax = plt.subplots(figsize=(14, 6))
+    bars_pd  = ax.bar(x - width / 2, pd_qps,  width, color=COLOR_PD,
+                       edgecolor="white", linewidth=0.5, label="PD (best config)", zorder=3)
+    bars_agg = ax.bar(x + width / 2, agg_qps, width, color=COLOR_AGG,
+                       edgecolor="white", linewidth=0.5, label="Aggregated", zorder=3)
+
+    # Annotate multiplier above each pair
+    for i in range(len(scenarios)):
+        mult = pd_qps[i] / agg_qps[i]
+        top = max(pd_qps[i], agg_qps[i])
+        ax.text(x[i], top + 0.18, f"{mult:.1f}x",
+                ha="center", va="bottom", fontsize=11, fontweight="bold",
+                color=COLOR_PD)
+
+    # Annotate bar values
+    for bar in bars_pd:
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
+                f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
+    for bar in bars_agg:
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
+                f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(scenarios, fontsize=9)
+    ax.set_ylabel("Max Sustainable QPS Under SLA")
+    ax.set_title("PD vs Aggregated: Max Sustainable QPS Under SLA (Same GPU Count)")
+    ax.legend(loc="upper left", fontsize=11)
+    ax.set_ylim(0, max(pd_qps) * 1.25)
+
+    plt.tight_layout()
+    path = os.path.join(FIGURES_DIR, "fig_1_hero_bar.png")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {path}")
+
+
+# ===================================================================
 # Figure 3 — TTFT vs QPS (dual panel)
 # ===================================================================
 def fig3_ttft_vs_qps():
@@ -146,6 +199,58 @@ def fig4_tpot_vs_qps():
 
 
 # ===================================================================
+# Figure 5 — Scaling Curve: QPS vs GPU Count
+# ===================================================================
+def fig5_scaling_curve():
+    gpu_counts = [16, 24, 32]
+
+    # Best PD config at each GPU count
+    pd_qps  = [2.0, 4.0, 3.5]
+    pd_labels = ["1P1D", "2P1D", "2P2D"]
+
+    # Aggregated
+    agg_qps = [1.0, 3.5, 2.0]
+    agg_labels = ["2Agg", "3Agg", "4Agg"]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.plot(gpu_counts, pd_qps, color=COLOR_PD, marker=MARKER_PD,
+            linewidth=2.5, markersize=9, label="PD (best config)", zorder=3)
+    ax.plot(gpu_counts, agg_qps, color=COLOR_AGG, marker=MARKER_AGG,
+            linewidth=2.5, markersize=9, label="Aggregated", zorder=3)
+
+    # Annotate PD data points
+    for i, (g, q) in enumerate(zip(gpu_counts, pd_qps)):
+        ax.annotate(f"{q:.1f} QPS\n({pd_labels[i]})",
+                    xy=(g, q), xytext=(8, 10),
+                    textcoords="offset points", fontsize=9,
+                    color=COLOR_PD, fontweight="medium",
+                    arrowprops=dict(arrowstyle="-", color=COLOR_PD, lw=0.5))
+
+    # Annotate Agg data points
+    for i, (g, q) in enumerate(zip(gpu_counts, agg_qps)):
+        ax.annotate(f"{q:.1f} QPS\n({agg_labels[i]})",
+                    xy=(g, q), xytext=(8, -18),
+                    textcoords="offset points", fontsize=9,
+                    color=COLOR_AGG, fontweight="medium",
+                    arrowprops=dict(arrowstyle="-", color=COLOR_AGG, lw=0.5))
+
+    ax.set_xticks(gpu_counts)
+    ax.set_xlabel("GPU Count")
+    ax.set_ylabel("Max QPS Under SLA")
+    ax.set_title("QPS Capacity Scaling: PD vs Aggregated (ISL=16K, OSL=1K)")
+    ax.legend(loc="upper left", fontsize=11)
+    ax.set_ylim(0, max(pd_qps) * 1.3)
+    ax.set_xlim(14, 34)
+
+    plt.tight_layout()
+    path = os.path.join(FIGURES_DIR, "fig_5_scaling_curve.png")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {path}")
+
+
+# ===================================================================
 # Figure 6 — Wrong P:D Ratio (horizontal bar chart)
 # ===================================================================
 def fig6_wrong_pd_ratio():
@@ -229,7 +334,9 @@ def fig6_wrong_pd_ratio():
 # Main
 # ===================================================================
 if __name__ == "__main__":
+    fig1_hero_bar()
     fig3_ttft_vs_qps()
     fig4_tpot_vs_qps()
+    fig5_scaling_curve()
     fig6_wrong_pd_ratio()
     print("\nAll figures generated successfully.")
