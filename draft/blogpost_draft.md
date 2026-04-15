@@ -263,7 +263,7 @@ anyscale service deploy -f serve_configs/pd/qwen235b.yaml
 
 ### Run Benchmarks
 
-We use the Ray LLM in-tree benchmark CLI in interactive mode, which lets you adjust workload parameters and QPS on the fly without restarting:
+We use the Ray LLM benchmark CLI in interactive mode which is agent friendly and lets you adjust workload parameters and QPS on the fly without restarting:
 
 ```bash
 python -m ray.llm._internal.serve.benchmark -i
@@ -286,14 +286,6 @@ Typical workflow for a QPS sweep:
 3. Increase QPS incrementally (`rate 2`, `rate 3`, ...), measuring at each level.
 4. Save results at each QPS point for later comparison.
 
-### Compare Results
-
-Compare PD vs Agg results across QPS levels by loading the saved JSON files. The key metrics to compare:
-- **TTFT** (p50, p99) -- PD will generally be higher
-- **TPOT** (p50, p99) -- PD will generally be lower and flatter
-- **E2E latency** (p50, p99) -- depends on output length
-- **Max sustainable QPS** under your SLA target
-
 ### Full Reproduction Repository
 
 All artifacts are available at: [Link TBD]
@@ -304,20 +296,16 @@ For a quick start, Anyscale + Digital Ocean provides a managed environment where
 
 ## Conclusion
 
-### Key Takeaways
+PD disaggregation on Ray + vLLM delivers **1.3--2.3x more QPS** under the same GPU budget and SLA -- up to **67% cost reduction** on AMD MI325X. The gains are real, but workload-dependent:
 
-1. **PD disaggregation on Ray + vLLM delivers up to 67% cost savings** for TPOT- and E2E-sensitive workloads on AMD MI325X GPUs. Under a TPOT < 30ms SLA, PD sustains up to 2.3x more QPS than aggregated on the same hardware.
+- **PD wins** when your SLA is TPOT- or E2E-sensitive and output is long enough for per-token savings to compound.
+- **Aggregated wins** when TTFT is the binding constraint, output is short, or cache hit rates are high enough to eliminate prefill-decode contention.
+- **The P:D ratio matters.** Get it wrong and PD is 67% worse than Agg. Get it right and it's 2.3x better.
+- **AMD MI325X is first-class** for PD via RIXL -- same `NixlConnector` config as NVIDIA, zero code changes.
+- **Ray Serve makes it a YAML swap**, not a rewrite. Deploy, benchmark, iterate.
 
-2. **The savings are workload-dependent.** Match your P:D ratio to your workload's ISL/OSL ratio and cache hit rate. Long inputs with short outputs need more prefill capacity (2P:1D). Long outputs need more decode capacity (1P:3D). The wrong ratio can make PD 67% worse than aggregated.
+### Get Started
 
-3. **AMD MI325X is a first-class platform for PD** via RIXL -- a plug-and-play replacement for NVIDIA's NIXL. Zero code changes in the serving layer. Same `NixlConnector` config, same performance characteristics.
-
-4. **Ray Serve makes PD a config change, not a rewrite.** Same API, same deployment flow, same autoscaling. Switch between aggregated and PD by swapping a YAML file. Session-aware routing for multi-turn cache affinity is supported today and will become a built-in feature.
-
-5. **Know when NOT to use PD.** Strictly TTFT-limited SLAs, short outputs, or a mismatched P:D ratio can make PD worse. Always benchmark your specific workload. The decision framework in this post gives you the structure to evaluate quickly.
-
-### Call to Action
-
-- **Try it yourself.** Clone the reproduction repository [Link TBD], deploy on your AMD MI325X cluster, and benchmark with your own workload parameters.
-- **Managed experience.** Anyscale + Digital Ocean provides a turnkey environment for PD disaggregation -- no cluster setup required.
-- **Join the community.** Questions, results, and feedback are welcome in the Ray community. If you find workloads where PD behaves differently than our framework predicts, we want to hear about it.
+- **Reproduce our results.** Clone the repo [Link TBD], deploy a config, and run the benchmark CLI against your workload.
+- **Skip the setup.** [Anyscale]() + [Digital Ocean]() gives you a managed PD environment out of the box.
+- **Talk to us.** Found a workload where PD behaves differently? We want to hear about it -- reach out on the [Ray community](https://discuss.ray.io).
