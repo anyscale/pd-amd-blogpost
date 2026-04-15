@@ -228,23 +228,6 @@ This returns a fully wired Ray Serve application with an OpenAI-compatible API. 
 ![PD architecture diagram](../figures/fig_8_pd_architecture.png)
 *Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
 
-### Coordinated Autoscaling
-
-The config also includes a coordinated autoscaling policy (`CoordinatedPDPolicy`) that scales prefill and decode replicas together based on the configured ratio:
-
-```yaml
-autoscaling_policy:
-  policy_function: pd_app:CoordinatedPDPolicy
-  policy_kwargs:
-    ingress_ratio: 4
-    prefill_ratio: 1
-    decode_ratio: 1
-    target_qps_per_prefill: 10.0
-    target_qps_per_decode: 10.0
-```
-
-This ensures the P:D ratio stays fixed as the system scales up or down with traffic, avoiding the wrong-ratio trap described in Insight 4.
-
 ---
 
 ## How to Reproduce
