@@ -38,15 +38,6 @@ The most common misconception about PD is that it speeds up everything. It does 
 ![TTFT vs QPS for PD and Agg](../figures/fig_3_ttft_vs_qps.png)
 *Figure 3: TTFT vs QPS — Agg TTFT stays flat while PD TTFT rises under load.*
 
-Key data points:
-
-| Model | Config | TTFT at moderate QPS | Notes |
-|-------|--------|---------------------|-------|
-| Qwen3-235B (TP8) | Agg | ~560ms (stable across QPS 0.25--2.0) | No transfer overhead |
-| Qwen3-235B (TP8) | 1P1D | ~686ms at QPS=0.25, ~7,021ms at QPS=3.0 | Transfer + queuing at high load |
-| DeepSeek-V3 (TP8) | 2x Agg | ~260ms at QPS=3, ~277ms at QPS=6 | Stable, distributed across 2 replicas |
-| DeepSeek-V3 (TP8) | 1P1D | ~332ms at QPS=3, ~721ms at QPS=6 | Single prefill saturates |
-
 Could you solve the TTFT gap by adding more prefill GPUs? Generally, no. TTFT improves sub-linearly with additional prefill capacity, so the added GPU cost rarely justifies the marginal TTFT improvement compared to what aggregated delivers natively.
 
 #### When this means PD loses -- strictly TTFT-limited SLAs
