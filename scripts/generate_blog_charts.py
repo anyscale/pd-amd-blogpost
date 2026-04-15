@@ -221,8 +221,21 @@ def fig3_ttft_vs_qps():
 # ===================================================================
 # Figure 4 — TPOT vs QPS (dual panel) — THE MOST IMPORTANT CHART
 # ===================================================================
+def _interpolate_crossing(qps_list, tpot_list, sla):
+    """Find the QPS where TPOT crosses the SLA by linear interpolation."""
+    for i in range(len(qps_list) - 1):
+        if tpot_list[i] <= sla < tpot_list[i + 1]:
+            # Linear interpolation
+            frac = (sla - tpot_list[i]) / (tpot_list[i + 1] - tpot_list[i])
+            return qps_list[i] + frac * (qps_list[i + 1] - qps_list[i])
+    # All below SLA → return last QPS; all above → return 0
+    if all(t <= sla for t in tpot_list):
+        return qps_list[-1]
+    return 0
+
+
 def fig4_tpot_vs_qps():
-    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(12, 5))
+    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(13, 5.5))
 
     SLA_QWEN = 25   # Qwen SLA: TPOT < 25ms
     SLA_DS = 30     # DeepSeek SLA: TPOT < 30ms
@@ -234,17 +247,16 @@ def fig4_tpot_vs_qps():
     tpot_pd = [19.5, 22.8, 24.2, 24.8]
 
     ax_left.plot(qps_agg, tpot_agg, color=COLOR_AGG, marker=MARKER_AGG,
-                 linewidth=2.5, markersize=8, label="Agg 3Agg TP8", zorder=3)
+                 linewidth=2.5, markersize=8, label="Agg 3×Agg TP8", zorder=3)
     ax_left.plot(qps_pd, tpot_pd, color=COLOR_PD, marker=MARKER_PD,
-                 linewidth=2.5, markersize=8, label="PD 2P1D TP8", zorder=3)
+                 linewidth=2.5, markersize=8, label="PD 2P:1D TP8", zorder=3)
     ax_left.axhline(SLA_QWEN, color="red", linestyle="--", linewidth=1.2,
-                     alpha=0.7, label=f"SLA = {SLA_QWEN} ms", zorder=2)
+                     alpha=0.7, label=f"SLA = {SLA_QWEN}ms", zorder=2)
     ax_left.set_xlabel("QPS")
     ax_left.set_ylabel("TPOT (ms)")
     ax_left.set_title("Qwen3-235B  (ISL=16K, OSL=1K, 24 GPU)")
-    ax_left.legend(loc="upper left")
-    # Ensure y-axis starts near 0 to emphasize the divergence
-    ax_left.set_ylim(bottom=0, top=max(tpot_agg) * 1.15)
+    ax_left.legend(loc="upper left", fontsize=9)
+    ax_left.set_ylim(bottom=0, top=max(tpot_agg) * 1.25)
 
     # --- Right panel: DeepSeek-V3 (ISL=5.4K, OSL=140, 30% HR) ---
     qps_agg2 = [3.0, 4.0, 5.0, 6.0, 7.0]
@@ -253,24 +265,65 @@ def fig4_tpot_vs_qps():
     tpot_pd2 = [22.6, 23.2, 26.1, 26.8, 27.3]
 
     ax_right.plot(qps_agg2, tpot_agg2, color=COLOR_AGG, marker=MARKER_AGG,
-                  linewidth=2.5, markersize=8, label="Agg 2Agg TP8", zorder=3)
+                  linewidth=2.5, markersize=8, label="Agg 2×Agg TP8", zorder=3)
     ax_right.plot(qps_pd2, tpot_pd2, color=COLOR_PD, marker=MARKER_PD,
-                  linewidth=2.5, markersize=8, label="PD 1P1D TP8", zorder=3)
+                  linewidth=2.5, markersize=8, label="PD 1P:1D TP8", zorder=3)
     ax_right.axhline(SLA_DS, color="red", linestyle="--", linewidth=1.2,
-                      alpha=0.7, label=f"SLA = {SLA_DS} ms", zorder=2)
+                      alpha=0.7, label=f"SLA = {SLA_DS}ms", zorder=2)
     ax_right.set_xlabel("QPS")
     ax_right.set_ylabel("TPOT (ms)")
     ax_right.set_title("DeepSeek-V3  (ISL=5.4K, OSL=140, 30% HR)")
-    ax_right.legend(loc="upper left")
-    ax_right.set_ylim(bottom=0, top=max(tpot_agg2) * 1.15)
+    ax_right.legend(loc="upper left", fontsize=9)
+    ax_right.set_ylim(bottom=0, top=max(tpot_agg2) * 1.25)
 
-    # Add shaded region above SLA to visually emphasize the death spiral
+    # Add shaded region above SLA
     for ax, qps_a, tpot_a, sla in [(ax_left, qps_agg, tpot_agg, SLA_QWEN),
                                      (ax_right, qps_agg2, tpot_agg2, SLA_DS)]:
         above = [(q, t) for q, t in zip(qps_a, tpot_a) if t > sla]
         if len(above) >= 2:
             qs, ts = zip(*above)
             ax.fill_between(qs, sla, ts, color="red", alpha=0.08, zorder=1)
+
+    # --- SLA-based QPS advantage annotation (double-headed arrow on SLA line) ---
+    for ax, qps_a, tpot_a, qps_p, tpot_p, sla in [
+        (ax_left, qps_agg, tpot_agg, qps_pd, tpot_pd, SLA_QWEN),
+        (ax_right, qps_agg2, tpot_agg2, qps_pd2, tpot_pd2, SLA_DS),
+    ]:
+        agg_max = _interpolate_crossing(qps_a, tpot_a, sla)
+        pd_max = _interpolate_crossing(qps_p, tpot_p, sla)
+
+        if agg_max > 0 and pd_max > 0 and pd_max > agg_max:
+            mult = pd_max / agg_max
+            y_arrow = sla  # draw on the SLA line itself
+
+            # Vertical dashed lines from SLA to x-axis at each crossing
+            ax.plot([agg_max, agg_max], [0, sla], color=COLOR_AGG,
+                    linestyle=":", linewidth=1.0, alpha=0.5, zorder=2)
+            ax.plot([pd_max, pd_max], [0, sla], color=COLOR_PD,
+                    linestyle=":", linewidth=1.0, alpha=0.5, zorder=2)
+
+            # Double-headed arrow along SLA line between crossings
+            arrow_y = sla * 0.45  # below SLA line for visibility
+            ax.annotate("", xy=(pd_max, arrow_y), xytext=(agg_max, arrow_y),
+                         arrowprops=dict(arrowstyle="<->", color=COLOR_WINNER,
+                                         lw=2.2, shrinkA=2, shrinkB=2))
+
+            # Multiplier label
+            mid_qps = (agg_max + pd_max) / 2
+            ax.text(mid_qps, arrow_y - sla * 0.12,
+                    f"PD serves {mult:.1f}× more QPS\nunder SLA",
+                    ha="center", va="top", fontsize=9.5, fontweight="bold",
+                    color=COLOR_WINNER,
+                    bbox=dict(boxstyle="round,pad=0.2", facecolor="white",
+                              edgecolor=COLOR_WINNER, alpha=0.9, linewidth=0.8))
+
+            # Mark the crossing QPS values on x-axis
+            ax.text(agg_max, -sla * 0.12, f"Agg\n{agg_max:.1f}",
+                    ha="center", va="top", fontsize=8, color=COLOR_AGG,
+                    fontweight="bold")
+            ax.text(pd_max, -sla * 0.12, f"PD\n{pd_max:.1f}",
+                    ha="center", va="top", fontsize=8, color=COLOR_PD,
+                    fontweight="bold")
 
     plt.tight_layout()
     path = os.path.join(FIGURES_DIR, "fig_4_tpot_vs_qps.png")

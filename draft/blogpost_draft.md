@@ -64,26 +64,7 @@ This is the core mechanism behind PD's value. In aggregated serving, prefill and
 PD eliminates this entirely. Decode runs on dedicated GPUs that never see a prefill token. TPOT stays nearly flat regardless of how much prefill work is happening on other nodes.
 
 ![TPOT vs QPS — the death spiral](../figures/fig_4_tpot_vs_qps.png)
-*Figure 4: TPOT vs QPS — Agg TPOT rises steeply ("death spiral") while PD stays flat. The most important chart in this post.*
-
-**Qwen3-235B (TP8, 24 GPU, ISL=16K, OSL=1K, 0% HR — 2P1D vs 3Agg):**
-
-| QPS | Agg TPOT | PD TPOT | PD Advantage |
-|-----|----------|---------|--------------|
-| 1.0 | 23.1ms | 19.5ms | ~1.2x |
-| 2.0 | 25.5ms | 22.8ms | ~1.1x |
-| 3.0 | 27.6ms | 24.2ms | **1.1x** |
-| 4.0 | 29.9ms | 24.8ms | **1.2x** |
-
-**DeepSeek-V3 (TP8, ISL=5.4K, OSL=140, 30% hit rate):**
-
-| QPS | Agg TPOT | PD TPOT | PD Advantage |
-|-----|----------|---------|--------------|
-| 3 | 23.7ms | 22.6ms | ~1.0x |
-| 5 | 35.1ms | 26.1ms | **1.3x** |
-| 7 | 50.6ms | 27.3ms | **1.9x** |
-
-The pattern is striking: PD's TPOT stays well-controlled (~22--27ms across the entire QPS range for DeepSeek-V3), while Agg's TPOT degrades linearly with load.
+*Figure 4: TPOT vs QPS — Agg TPOT rises steeply ("death spiral") while PD stays flat. Under the target SLA, PD sustains significantly more QPS than Agg on both models.*
 
 ---
 
