@@ -89,20 +89,12 @@ This is the most practical insight for practitioners. The P:D ratio determines h
 
 **Key findings across workloads:**
 
-| Workload | Cache Hit Rate | Bottleneck | Optimal Ratio | Evidence |
-|----------|---------------|-----------|--------------|----------|
-| Long input, short output (ISL=16K, OSL=1K) | 0% | Prefill throughput | **2P:1D** | 2P1D TP8 beats 3x Agg TP8 at 24 GPUs |
-| Long input, long output (ISL=16K, OSL=4K) | 0% | Decode throughput | **1P:3D** | Single-decode PD loses to Agg by 6--40%; 1P3D flips it to 14% win |
-| Multi-turn with high cache reuse | 80% | Decode throughput | **1P:2D** | Cached prefill is cheap, shift GPUs to decode |
-| Multi-turn with moderate cache reuse | 30--60% | Mixed | **1P:1D** to **1P:2D** | DeepSeek study: 1P1D achieves 1.40--2.33x capacity advantage |
-
-**Why 2P:1D for long-input short-output.** At ISL=16K, OSL=1K with 0% cache hit rate, the prefill phase is compute-heavy and a single prefill replica saturates quickly. From our Qwen3-235B experiments:
-
-- **1P1D (16 GPU):** At QPS=3, TTFT explodes to 7,021ms -- single prefill cannot keep up.
-- **2P1D (24 GPU):** At QPS=3, TTFT is only 1,187ms -- the second prefill absorbs the load.
-- TPOT is similar between the two (28.8ms vs 33.9ms) because both have a single decode node. The bottleneck shifted from prefill to decode at higher QPS.
-
-The second prefill replica buys 75% more QPS capacity. That is the value of matching the ratio to the bottleneck.
+| Workload | Cache Hit Rate | Bottleneck | Optimal Ratio |
+|----------|---------------|-----------|--------------|
+| Long input, short output (ISL=16K, OSL=1K) | 0% | Prefill throughput | **2P:1D** |
+| Long input, long output (ISL=16K, OSL=4K) | 0% | Decode throughput | **1P:3D** |
+| Multi-turn with high cache reuse | 80% | Decode throughput | **1P:2D** |
+| Multi-turn with moderate cache reuse | 30--60% | Mixed | **1P:1D** to **1P:2D** |
 
 **Rule of thumb:** The marginal GPU should go to wherever the bottleneck is. High cache hit rates make prefill cheap -- allocate more to decode. Low cache hit rates with long inputs -- allocate more to prefill.
 
@@ -111,19 +103,7 @@ The second prefill replica buys 75% more QPS capacity. That is the value of matc
 The most common PD pitfall: deploying with a ratio that does not match the workload. This can make PD strictly worse than aggregated on every metric.
 
 ![Wrong P:D ratio impact](../figures/fig_6_wrong_pd_ratio.png)
-*Figure 6: Wrong P:D ratio can be worse than aggregated — 3P:1D is 67% worse, while 1P:3D is 14% better.*
-
-From our Qwen3-235B experiments (ISL=16K, OSL=4K at QPS=1.5):
-
-| Config | GPUs | E2E | vs 4x Agg (32 GPU) |
-|--------|------|-----|---------------------|
-| 3P1D TP8 | 32 | 227.0s | **67% worse** |
-| 2P1D TP8 | 24 | 205.3s | **51% worse** |
-| 1P1D TP8 | 16 | 192.2s | **41% worse** |
-| **1P3D TP8** | **32** | **117.0s** | **14% better** |
-| 4x Agg TP8 | 32 | 135.8s | baseline |
-
-All single-decode PD configs *lose* to Agg -- badly. Only the decode-heavy 1P3D configuration wins. The difference between worst PD (3P1D) and best PD (1P3D) is **94%**. Always benchmark your specific workload before deploying PD. Start with a 1:1 ratio, then adjust based on whether TTFT or TPOT hits the SLA first.
+*Wrong P:D ratio can be dramatically worse than aggregated. Always benchmark your specific workload. Start with 1:1, then adjust based on whether TTFT or TPOT hits the SLA first.*
 
 ---
 
