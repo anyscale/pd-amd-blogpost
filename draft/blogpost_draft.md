@@ -1,21 +1,17 @@
 # Achieving Up to 67% Cost Savings with Prefill-Decode Disaggregation Using Ray + vLLM on AMD MI325X
 
-Under the same GPU budget and SLA, Prefill-Decode disaggregation on Ray + vLLM can serve **1.3x to 2.3x more QPS** than aggregated serving -- depending on the workload.
-
-![PD vs Aggregated: Max Sustainable QPS Under SLA](../figures/fig_1_hero_bar.png)
-*PD vs Aggregated max sustainable QPS under SLA across 5 workload scenarios (same GPU count). Validated on Qwen3-235B and DeepSeek-V3 on AMD MI325X.*
-
-We tested two large MoE models across a range of workloads -- varying input/output lengths, KV cache hit rates, and P:D ratios -- to find where PD saves cost and where it doesn't. This post walks through the core intuition, the AMD-specific stack (RIXL for KV transfer), how to set it up with Ray Serve, and when to use aggregated instead.
-
----
-
-## Why Efficient GPU Utilization Matters
 
 In LLM serving, the optimization objective is deceptively simple: given a set of latency SLA targets -- time to first token (TTFT), time per output token (TPOT), end-to-end latency (E2E) -- maximize the queries per second (QPS) you can sustain. Higher QPS on the same hardware means lower cost per token. Whether your bottleneck is TTFT or TPOT depends on the shape of your workload: the input/output length ratio, KV cache hit rates, and multi-turn conversation patterns all shift the pressure between the prefill and decode phases of inference.
 
 One of the most powerful levers for breaking through the throughput ceiling is **Prefill-Decode (PD) disaggregation**. Instead of running both phases on the same GPUs -- where they compete for compute, memory bandwidth, and scheduling budget -- PD separates them onto dedicated hardware. Prefill nodes handle prompt processing. Decode nodes handle token generation. By eliminating mutual interference, each phase runs closer to its theoretical throughput, and the system as a whole serves more requests under the same SLA constraints.
 
-PD adds operational complexity: KV cache must be transferred across nodes and the prefill-to-decode ratio must be tuned per workload. We show results where PD saves up to 67% compute cost -- and also results where it does not help -- so you can make the right decision for your workload.
+PD adds operational complexity: KV cache must be transferred across nodes and the prefill-to-decode ratio must be tuned per workload. We show results where under the same GPU budget and SLA, Prefill-Decode disaggregation on Ray + vLLM can serve **1.3x to 2.3x more QPS** than aggregated serving -- depending on the workload (up to **67% compute cost reduction**) and also results where it does not help -- so you can make the right decision for your workload.
+
+
+![PD vs Aggregated: Max Sustainable QPS Under SLA](../figures/fig_1_hero_bar.png)
+*PD vs Aggregated max sustainable QPS under SLA across 5 workload scenarios (same GPU count). Validated on Qwen3-235B and DeepSeek-V3 on AMD MI325X.*
+
+We tested two large MoE models across a range of workloads -- varying input/output lengths, KV cache hit rates, and P:D ratios -- to find where PD saves cost and where it doesn't. This post walks through the core intuition, the AMD-specific stack (RIXL for KV transfer), how to set it up with Ray Serve, and when to use aggregated instead. For a managed solution you can use [Anyscale]() + [Digital ocean]() for bringing similar cost savings to your workloads.
 
 ---
 
@@ -27,14 +23,14 @@ This section covers the five key insights you need to reason about PD for any wo
 
 The most common misconception about PD is that it speeds up everything. It does not. On the metric that matters most for interactive responsiveness -- time to first token -- PD is consistently slower than aggregated serving on the same GPU footprint.
 
-**Why aggregated TTFT is already good.** In vLLM's v1 scheduler, there is no separate "prefill phase" or "decode phase." The scheduler runs all currently-active requests -- both prefill and decode -- before admitting new requests from the waiting queue. Chunked prefill is enabled by default for all decoder-only models: long prompts are split into chunks sized by `max_num_batched_tokens` (default 8192 on MI325X). Each chunk runs as one scheduler iteration. Critically, decode steps consume trivially little budget per iteration. A batch of 128 concurrent decode requests uses at most 128 tokens out of the 8192-token budget, leaving the vast majority of each iteration available for prefill tokens. TTFT is therefore dominated by the raw compute time of the prefill forward pass (attention + MoE routing), not by contention with decode.
+**Why aggregated TTFT is already good.** In vLLM's scheduler, there is no separate "prefill phase" or "decode phase." The scheduler runs all currently-active requests -- both prefill and decode -- before admitting new requests from the waiting queue. Chunked prefill is enabled by default for all decoder-only models: long prompts are split into chunks sized by `max_num_batched_tokens` (default 8192 on MI325X). Each chunk runs as one scheduler iteration. Critically, decode steps consume trivially little budget per iteration. A batch of 128 concurrent decode requests uses at most 128 tokens out of the 8192-token budget, leaving the vast majority of each iteration available for prefill tokens. TTFT is therefore dominated by the raw compute time of the prefill forward pass (attention + MoE routing), not by contention with decode.
 
 **What PD changes.** PD adds a KV cache transfer step after prefill completes. The prefill node sends KV data over the network (RDMA/RoCE) to the decode node. This transfer has inherent overhead that depends on model architecture, KV cache size, and network conditions. Under high load, prefill nodes can also queue up, adding queuing delay on top of transfer overhead.
 
 **The net effect.** On the same GPU footprint, aggregated consistently achieves equal or lower TTFT than PD.
 
 ![Aggregated scheduler timeline](../figures/insight_1_agg_scheduler.png)
-*In aggregated serving, decode tokens consume only ~1.6% of the scheduler's token budget per iteration — TTFT is dominated by prefill compute, not decode contention.*
+*Chunked prefill in vLLM's aggregated scheduler. A new 10k-token request arriving at iteration N is split into two prefill chunks (8064 and 2048 tokens), each co-scheduled with the 128 ongoing decode requests. Prefill nearly saturates the 8192-token budget in both iterations, delivering fast TTFT for the new request — but stalling decode latency for all existing requests at N and N+1. From N+2 onward, the batch returns to a lightweight 129-token decode rhythm (1.6% of budget).*
 
 ![PD KV transfer overhead](../figures/insight_1_pd_kv_transfer.png)
 *In PD serving, the KV cache transfer step between prefill and decode nodes adds overhead that inflates TTFT.*
