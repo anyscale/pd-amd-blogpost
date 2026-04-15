@@ -220,19 +220,13 @@ The application entry point is a single function:
 ```python
 from pd_app import build_pd_openai_app
 
-app = build_pd_openai_app(prefill_config=..., decode_config=...)
+app = build_pd_openai_app(dict(prefill_config=..., decode_config=...))
 ```
 
 This returns a fully wired Ray Serve application with an OpenAI-compatible API. The `build_pd_openai_app` function handles replica creation, ingress routing, and KV transfer coordination. You get `/v1/chat/completions` and `/v1/completions` endpoints out of the box.
 
-### Session-Aware Routing for Cache Affinity
-
-For multi-turn workloads, KV cache reuse across turns is critical for performance. Our deployment uses session-aware routing: an `X-Session-Id` header in the request routes multi-turn requests to the same decode replica, maximizing KV cache hits.
-
-This is currently implemented via `@serve.multiplexed` in our custom app code (`SessionAwareIngress` and `SessionAwareLLMServer` classes in the config above). Native Ray Serve support for session-affinity routing is in progress -- see [RFC link TBD] for the design. Once available, session routing will be a built-in config option rather than a custom implementation.
-
 ![PD architecture diagram](../figures/fig_8_pd_architecture.png)
-*Figure 8: Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
+*Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
 
 ### Coordinated Autoscaling
 
