@@ -25,15 +25,19 @@ The most common misconception about PD is that it speeds up everything. It does 
 
 **Why aggregated TTFT is already good.** In vLLM's scheduler, there is no separate "prefill phase" or "decode phase." The scheduler runs all currently-active requests -- both prefill and decode -- before admitting new requests from the waiting queue. Chunked prefill is enabled by default for all decoder-only models: long prompts are split into chunks sized by `max_num_batched_tokens` (defaults to 8192). Each chunk runs as one scheduler iteration. Critically, decode steps consume trivially little budget per iteration. A batch of 128 concurrent decode requests uses at most 128 tokens out of the 8192-token budget, leaving the vast majority of each iteration available for prefill tokens. TTFT is therefore dominated by the raw compute time of the prefill forward pass (attention + MoE routing), not by contention with decode.
 
-**What PD changes.** PD adds a KV cache transfer step after prefill completes. The prefill node sends KV data over the network (RDMA/RoCE) to the decode node. This transfer has inherent overhead that depends on model architecture, KV cache size, and network conditions. Under high load and kv-cache pressure, prefill nodes can also queue up, adding queuing delay on top of transfer overhead.
-
-**The net effect.** On the same GPU footprint, aggregated consistently achieves equal or lower TTFT than PD.
 
 ![Aggregated scheduler timeline](../figures/insight_1_agg_scheduler.png)
 *In aggregated serving, decode tokens consume only ~1.6% of the scheduler's token budget per iteration — TTFT is dominated by prefill compute, not decode contention.*
 
+**What PD changes.** PD adds a KV cache transfer step after prefill completes. The prefill node sends KV data over the network (RDMA/RoCE) to the decode node. This transfer has inherent overhead that depends on model architecture, KV cache size, and network conditions. Under high load and kv-cache pressure, prefill nodes can also queue up, adding queuing delay on top of transfer overhead.
+
+
 ![PD KV transfer overhead](../figures/insight_1_pd_kv_transfer.png)
 *In PD serving, the KV cache transfer step between prefill and decode nodes adds overhead that inflates TTFT.*
+
+
+**The net effect.** On the same GPU footprint, aggregated consistently achieves equal or lower TTFT than PD.
+
 
 ![TTFT vs QPS for PD and Agg](../figures/fig_3_ttft_vs_qps.png)
 *Figure 3: TTFT vs QPS — Agg TTFT stays flat while PD TTFT rises under load.*
@@ -42,12 +46,12 @@ Could you solve the TTFT gap by adding more prefill GPUs? Generally, no. TTFT im
 
 #### When this means PD loses -- strictly TTFT-limited SLAs
 
-If your SLA is measured purely on time-to-first-token (e.g., interactive search, auto-complete), aggregated will consistently beat PD. From our DeepSeek-V3 data:
+If your SLA is measured purely on time-to-first-token (e.g., interactive search, auto-complete), aggregated will consistently beat PD. As Figure 3 shows, PD's TTFT baseline on DeepSeek-V3 is ~330ms (due to KV transfer overhead), while Agg stays at ~260ms across all QPS levels:
 
-- Under a **TTFT < 300ms** SLA, Agg sustains **6.0 QPS** vs PD's **4.3 QPS** (30% hit rate) -- Agg wins by 1.4x.
-- Under a **TTFT < 500ms** SLA, Agg sustains **6.0 QPS** vs PD's **5.2 QPS** -- Agg wins by 1.15x.
+- Under a **TTFT < 300ms** SLA, PD **cannot serve any traffic** (baseline TTFT exceeds the target), while Agg sustains **7.0+ QPS**.
+- Under a **TTFT < 500ms** SLA, Agg sustains **7.0+ QPS** vs PD's **5.0 QPS** -- Agg wins by 1.4x.
 
-Agg's advantage here is structural: no KV transfer step, and prefill load is naturally distributed across replicas. If you need *both* fast TTFT and fast TPOT, consider accepting a slightly relaxed TTFT target -- even a small TTFT relaxation can unlock major TPOT and E2E improvements through PD.
+Agg's advantage here is structural: no KV transfer step, and prefill load is naturally distributed across replicas. If you need *both* fast TTFT and fast TPOT, consider accepting a slightly relaxed TTFT target -- even a small relaxation can unlock major TPOT and E2E improvements through PD.
 
 **Bottom line:** If your SLA is strictly TTFT-limited, aggregated is the simpler and better choice.
 
