@@ -70,10 +70,14 @@ PD eliminates this entirely. Decode runs on dedicated GPUs that never see a pref
 
 ### Insight 3: TPOT savings compound over output sequence length
 
-PD's per-token TPOT advantage looks modest in isolation (5-10ms). But it multiplies across every output token: **Total savings = TPOT delta × output_length**. This compounding is why PD wins on E2E latency despite losing on TTFT.
+PD's per-token TPOT advantage looks modest in isolation (5-10ms). But it multiplies across every output token: 
+
+> **Total savings = TPOT delta × output_length**. 
+
+This compounding is why PD wins on E2E latency despite losing on TTFT.
 
 ![TPOT compounding over output length](../figures/fig_4b_tpot_compounding.png)
-*Left: TPOT savings grow linearly with output length, quickly dwarfing the fixed TTFT penalty. Right: PD's E2E advantage ranges from ~5% at OSL=140 to ~15% at OSL=4K.*
+*A 5.1ms/token TPOT advantage compounds: PD's E2E win grows from 12% at OSL=140 to 17% at OSL=4K (Qwen3-235B, 24 GPU, QPS=4).*
 
 **When PD loses: short output.** For short-output workloads (classification, extraction, short QA), the savings don't accumulate enough to justify the complexity. Use aggregated.
 

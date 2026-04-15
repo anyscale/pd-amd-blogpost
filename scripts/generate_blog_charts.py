@@ -480,76 +480,68 @@ def fig6_wrong_pd_ratio():
 # Figure 4b — Insight 3: TPOT savings compound over output length
 # ===================================================================
 def fig4b_tpot_compounding():
-    """Two side-by-side bar charts:
-    Left: stacked bar showing TTFT penalty vs TPOT savings at different OSL
-    Right: net E2E savings (%) at different OSL
-    """
+    """Grouped bar chart: PD vs Agg E2E at different output lengths,
+    with % improvement annotated."""
     # Qwen3-235B TP8, 24 GPU, QPS=4 data
-    ttft_penalty_ms = 130  # PD is ~130ms slower on TTFT
-    tpot_delta_ms = 5.1    # Agg 29.9ms - PD 24.8ms per token
+    agg_ttft_ms = 600
+    pd_ttft_ms = 730
+    agg_tpot_ms = 29.9
+    pd_tpot_ms = 24.8
 
     osls = [140, 512, 1024, 4096]
-    tpot_savings = [tpot_delta_ms * osl / 1000 for osl in osls]  # seconds
-    ttft_cost = [ttft_penalty_ms / 1000] * len(osls)  # seconds
-    net_savings = [ts - tc for ts, tc in zip(tpot_savings, ttft_cost)]
+    labels = ["140", "512", "1K", "4K"]
 
-    # Agg E2E at QPS=4 (approximate from TPOT * OSL + TTFT)
-    agg_ttft = 0.6  # ~600ms
-    pd_ttft = 0.73  # ~730ms
-    agg_e2e = [agg_ttft + 29.9 * osl / 1000 for osl in osls]
-    pd_e2e = [pd_ttft + 24.8 * osl / 1000 for osl in osls]
-    e2e_pct = [(a - p) / a * 100 for a, p in zip(agg_e2e, pd_e2e)]
-
-    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(13, 5))
+    agg_e2e = [(agg_ttft_ms + agg_tpot_ms * osl) / 1000 for osl in osls]
+    pd_e2e = [(pd_ttft_ms + pd_tpot_ms * osl) / 1000 for osl in osls]
+    pct_win = [(a - p) / a * 100 for a, p in zip(agg_e2e, pd_e2e)]
 
     x = np.arange(len(osls))
-    width = 0.5
-    labels = [str(o) for o in osls]
+    width = 0.32
 
-    # --- Left panel: TPOT savings vs TTFT cost (stacked) ---
-    bars_save = ax_left.bar(x, tpot_savings, width, color=COLOR_WINNER,
-                             edgecolor="white", label="TPOT savings (s)", zorder=3)
-    # Overlay TTFT penalty as a horizontal band
-    ax_left.axhline(ttft_cost[0], color="#d62728", linestyle="--", linewidth=2,
-                     label=f"TTFT penalty ({ttft_penalty_ms}ms)", zorder=4)
+    fig, ax = plt.subplots(figsize=(9, 5))
 
-    # Shade the "net loss" region where savings < penalty
-    ax_left.fill_between([-0.5, len(osls) - 0.5], 0, ttft_cost[0],
-                          color="#d62728", alpha=0.06, zorder=1)
+    bars_agg = ax.bar(x - width / 2, agg_e2e, width, color=COLOR_AGG,
+                       edgecolor="white", linewidth=0.5, label="Aggregated (3×Agg)", zorder=3)
+    bars_pd = ax.bar(x + width / 2, pd_e2e, width, color=COLOR_PD,
+                      edgecolor="white", linewidth=0.5, label="PD (2P:1D)", zorder=3)
 
-    for i, bar in enumerate(bars_save):
-        val = tpot_savings[i]
-        ax_left.text(bar.get_x() + bar.get_width() / 2, val + 0.15,
-                     f"{val:.1f}s", ha="center", va="bottom", fontsize=10,
-                     fontweight="bold", color=COLOR_WINNER if val > ttft_cost[0] else "#d62728")
+    # Label bar values
+    for bar in bars_agg:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                f"{h:.0f}s", ha="center", va="bottom", fontsize=9, color=COLOR_AGG)
+    for bar in bars_pd:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                f"{h:.0f}s", ha="center", va="bottom", fontsize=9, color=COLOR_PD)
 
-    ax_left.set_xticks(x)
-    ax_left.set_xticklabels(labels)
-    ax_left.set_xlabel("Output Sequence Length (tokens)")
-    ax_left.set_ylabel("Time (seconds)")
-    ax_left.set_title("TPOT Savings vs TTFT Penalty\n(Qwen3-235B, 24 GPU, QPS=4)")
-    ax_left.legend(loc="upper left", fontsize=9)
-    ax_left.set_ylim(0, max(tpot_savings) * 1.2)
+    # Annotate % improvement with arrow between each pair
+    for i in range(len(osls)):
+        hi = agg_e2e[i]
+        lo = pd_e2e[i]
+        bracket_x = x[i] + width / 2 + width * 0.55
 
-    # --- Right panel: Net E2E improvement % ---
-    colors = [COLOR_WINNER if p > 0 else "#d62728" for p in e2e_pct]
-    bars_pct = ax_right.bar(x, e2e_pct, width, color=colors,
-                             edgecolor="white", zorder=3)
+        ax.plot([x[i] + width / 2 + width * 0.05, bracket_x + 0.03], [hi, hi],
+                color=COLOR_WINNER, linestyle=":", linewidth=1.0, alpha=0.5)
+        ax.plot([x[i] + width / 2 + width * 0.05, bracket_x + 0.03], [lo, lo],
+                color=COLOR_WINNER, linestyle=":", linewidth=1.0, alpha=0.5)
 
-    for i, bar in enumerate(bars_pct):
-        val = e2e_pct[i]
-        ax_right.text(bar.get_x() + bar.get_width() / 2,
-                      val + (0.5 if val > 0 else -1.5),
-                      f"{val:+.0f}%", ha="center", va="bottom", fontsize=11,
-                      fontweight="bold", color=colors[i])
+        ax.annotate("", xy=(bracket_x, lo), xytext=(bracket_x, hi),
+                     arrowprops=dict(arrowstyle="<->", color=COLOR_WINNER, lw=1.8,
+                                     shrinkA=1, shrinkB=1))
 
-    ax_right.axhline(0, color="black", linewidth=0.8, zorder=2)
-    ax_right.set_xticks(x)
-    ax_right.set_xticklabels(labels)
-    ax_right.set_xlabel("Output Sequence Length (tokens)")
-    ax_right.set_ylabel("PD E2E Improvement Over Agg (%)")
-    ax_right.set_title("PD E2E Advantage Grows With Output Length\n(Qwen3-235B, 24 GPU, QPS=4)")
-    ax_right.set_ylim(min(e2e_pct) - 3, max(e2e_pct) + 5)
+        ax.text(bracket_x + 0.08, (hi + lo) / 2,
+                f"{pct_win[i]:.0f}%\nfaster",
+                ha="left", va="center", fontsize=9, fontweight="bold",
+                color=COLOR_WINNER)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_xlabel("Output Sequence Length (tokens)")
+    ax.set_ylabel("End-to-End Latency (seconds)")
+    ax.set_title("PD E2E Advantage Grows With Output Length\n(Qwen3-235B, 24 GPU, QPS=4, TPOT delta = 5.1ms/token)")
+    ax.legend(loc="upper left", fontsize=10)
+    ax.set_ylim(0, max(agg_e2e) * 1.15)
 
     plt.tight_layout()
     path = os.path.join(FIGURES_DIR, "fig_4b_tpot_compounding.png")
