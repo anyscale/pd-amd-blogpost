@@ -51,8 +51,8 @@ def fig1_hero_bar():
         "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 30%HR\n(TPOT<30ms)",
         "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 60%HR\n(TPOT<30ms)",
     ]
-    pd_qps  = [4.0, 5.0, 1.5, 7.0, 7.1]
-    agg_qps = [1.5, 3.5, 1.25, 3.7, 4.9]
+    pd_qps  = [4.0, 5.0, 1.5, 7.0, 7.0]
+    agg_qps = [1.5, 3.5, 1.25, 3.0, 5.0]
 
     x = np.arange(len(scenarios))
     width = 0.32
@@ -146,39 +146,40 @@ def fig3_ttft_vs_qps():
 def fig4_tpot_vs_qps():
     fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(12, 5))
 
-    SLA_MS = 30  # reference SLA line
+    SLA_QWEN = 25   # Qwen SLA: TPOT < 25ms
+    SLA_DS = 30     # DeepSeek SLA: TPOT < 30ms
 
-    # --- Left panel: Qwen3-235B (ISL=16K, OSL=1K) ---
-    qps_agg = [0.25, 1.0, 2.0, 3.0]
-    tpot_agg = [15.7, 23.2, 46.1, 70.4]
-    qps_pd = [0.25, 1.0, 2.0, 3.0]
-    tpot_pd = [15.8, 22.8, 28.5, 30.8]
+    # --- Left panel: Qwen3-235B (ISL=16K, OSL=1K) — 24 GPU (2P1D vs 3Agg) ---
+    qps_agg = [1.0, 2.0, 3.0, 4.0]
+    tpot_agg = [23.1, 25.5, 27.6, 29.9]
+    qps_pd = [1.0, 2.0, 3.0, 4.0]
+    tpot_pd = [19.5, 22.8, 24.2, 24.8]
 
     ax_left.plot(qps_agg, tpot_agg, color=COLOR_AGG, marker=MARKER_AGG,
-                 linewidth=2.5, markersize=8, label="Agg (best, 32K budget)", zorder=3)
+                 linewidth=2.5, markersize=8, label="Agg 3Agg TP8", zorder=3)
     ax_left.plot(qps_pd, tpot_pd, color=COLOR_PD, marker=MARKER_PD,
-                 linewidth=2.5, markersize=8, label="PD 2P2D TP4", zorder=3)
-    ax_left.axhline(SLA_MS, color="red", linestyle="--", linewidth=1.2,
-                     alpha=0.7, label=f"SLA = {SLA_MS} ms", zorder=2)
+                 linewidth=2.5, markersize=8, label="PD 2P1D TP8", zorder=3)
+    ax_left.axhline(SLA_QWEN, color="red", linestyle="--", linewidth=1.2,
+                     alpha=0.7, label=f"SLA = {SLA_QWEN} ms", zorder=2)
     ax_left.set_xlabel("QPS")
     ax_left.set_ylabel("TPOT (ms)")
-    ax_left.set_title("Qwen3-235B  (ISL=16K, OSL=1K)")
+    ax_left.set_title("Qwen3-235B  (ISL=16K, OSL=1K, 24 GPU)")
     ax_left.legend(loc="upper left")
     # Ensure y-axis starts near 0 to emphasize the divergence
     ax_left.set_ylim(bottom=0, top=max(tpot_agg) * 1.15)
 
     # --- Right panel: DeepSeek-V3 (ISL=5.4K, OSL=140, 30% HR) ---
-    qps_agg2 = [3.0, 4.0, 4.5, 5.0, 6.0]
-    tpot_agg2 = [24.14, 32.81, 35.33, 38.12, 49.95]
-    qps_pd2 = [3.0, 4.0, 4.5, 5.0, 6.0]
-    tpot_pd2 = [12.28, 11.88, 12.72, 12.60, 12.93]
+    qps_agg2 = [3.0, 4.0, 5.0, 6.0, 7.0]
+    tpot_agg2 = [23.7, 30.2, 35.1, 43.6, 50.6]
+    qps_pd2 = [3.0, 4.0, 5.0, 6.0, 7.0]
+    tpot_pd2 = [22.6, 23.2, 26.1, 26.8, 27.3]
 
     ax_right.plot(qps_agg2, tpot_agg2, color=COLOR_AGG, marker=MARKER_AGG,
                   linewidth=2.5, markersize=8, label="Agg 2Agg TP8", zorder=3)
     ax_right.plot(qps_pd2, tpot_pd2, color=COLOR_PD, marker=MARKER_PD,
                   linewidth=2.5, markersize=8, label="PD 1P1D TP8", zorder=3)
-    ax_right.axhline(SLA_MS, color="red", linestyle="--", linewidth=1.2,
-                      alpha=0.7, label=f"SLA = {SLA_MS} ms", zorder=2)
+    ax_right.axhline(SLA_DS, color="red", linestyle="--", linewidth=1.2,
+                      alpha=0.7, label=f"SLA = {SLA_DS} ms", zorder=2)
     ax_right.set_xlabel("QPS")
     ax_right.set_ylabel("TPOT (ms)")
     ax_right.set_title("DeepSeek-V3  (ISL=5.4K, OSL=140, 30% HR)")
@@ -186,12 +187,12 @@ def fig4_tpot_vs_qps():
     ax_right.set_ylim(bottom=0, top=max(tpot_agg2) * 1.15)
 
     # Add shaded region above SLA to visually emphasize the death spiral
-    for ax, qps_a, tpot_a in [(ax_left, qps_agg, tpot_agg),
-                                (ax_right, qps_agg2, tpot_agg2)]:
-        above = [(q, t) for q, t in zip(qps_a, tpot_a) if t > SLA_MS]
+    for ax, qps_a, tpot_a, sla in [(ax_left, qps_agg, tpot_agg, SLA_QWEN),
+                                     (ax_right, qps_agg2, tpot_agg2, SLA_DS)]:
+        above = [(q, t) for q, t in zip(qps_a, tpot_a) if t > sla]
         if len(above) >= 2:
             qs, ts = zip(*above)
-            ax.fill_between(qs, SLA_MS, ts, color="red", alpha=0.08, zorder=1)
+            ax.fill_between(qs, sla, ts, color="red", alpha=0.08, zorder=1)
 
     plt.tight_layout()
     path = os.path.join(FIGURES_DIR, "fig_4_tpot_vs_qps.png")

@@ -1,6 +1,6 @@
-# Achieving Up to 50% Cost Savings with Prefill-Decode Disaggregation Using Ray + vLLM on AMD MI325X
+# Achieving Up to 67% Cost Savings with Prefill-Decode Disaggregation Using Ray + vLLM on AMD MI325X
 
-Under the same GPU budget and SLA, Prefill-Decode disaggregation on Ray + vLLM can serve **1.1x to 1.9x more QPS** than aggregated serving -- depending on the workload.
+Under the same GPU budget and SLA, Prefill-Decode disaggregation on Ray + vLLM can serve **1.3x to 2.3x more QPS** than aggregated serving -- depending on the workload.
 
 ![PD vs Aggregated: Max Sustainable QPS Under SLA](../figures/fig_1_hero_bar.png)
 *PD vs Aggregated max sustainable QPS under SLA across 5 workload scenarios (same GPU count). Validated on Qwen3-235B and DeepSeek-V3 on AMD MI325X.*
@@ -15,7 +15,7 @@ In LLM serving, the optimization objective is deceptively simple: given a set of
 
 One of the most powerful levers for breaking through the throughput ceiling is **Prefill-Decode (PD) disaggregation**. Instead of running both phases on the same GPUs -- where they compete for compute, memory bandwidth, and scheduling budget -- PD separates them onto dedicated hardware. Prefill nodes handle prompt processing. Decode nodes handle token generation. By eliminating mutual interference, each phase runs closer to its theoretical throughput, and the system as a whole serves more requests under the same SLA constraints.
 
-PD adds operational complexity: KV cache must be transferred across nodes, the prefill-to-decode ratio must be tuned per workload, and session-aware routing matters for cache reuse. We show results where PD saves up to 50% compute cost -- and also results where it does not help -- so you can make the right decision for your workload.
+PD adds operational complexity: KV cache must be transferred across nodes and the prefill-to-decode ratio must be tuned per workload. We show results where PD saves up to 67% compute cost -- and also results where it does not help -- so you can make the right decision for your workload.
 
 ---
 
@@ -75,26 +75,26 @@ PD eliminates this entirely. Decode runs on dedicated GPUs that never see a pref
 ![TPOT vs QPS — the death spiral](../figures/fig_4_tpot_vs_qps.png)
 *Figure 4: TPOT vs QPS — Agg TPOT rises steeply ("death spiral") while PD stays flat. The most important chart in this post.*
 
-**Qwen3-235B (TP8, ISL=16K, OSL=1K):**
+**Qwen3-235B (TP8, 24 GPU, ISL=16K, OSL=1K, 0% HR — 2P1D vs 3Agg):**
 
 | QPS | Agg TPOT | PD TPOT | PD Advantage |
 |-----|----------|---------|--------------|
-| 0.25 | 15.7ms | 15.8ms | ~1.0x (no load) |
-| 1.0 | 23.2ms | 22.8ms | ~1.0x |
-| 2.0 | 46.1ms | 28.5ms | **1.6x** |
-| 3.0 | 70.4ms | 30.8ms | **2.3x** |
+| 1.0 | 23.1ms | 19.5ms | ~1.2x |
+| 2.0 | 25.5ms | 22.8ms | ~1.1x |
+| 3.0 | 27.6ms | 24.2ms | **1.1x** |
+| 4.0 | 29.9ms | 24.8ms | **1.2x** |
 
 **DeepSeek-V3 (TP8, ISL=5.4K, OSL=140, 30% hit rate):**
 
 | QPS | Agg TPOT | PD TPOT | PD Advantage |
 |-----|----------|---------|--------------|
-| 3 | 24.1ms | 12.3ms | **2.0x** |
-| 5 | 38.1ms | 12.6ms | **3.0x** |
-| 6 | 50.0ms | 12.9ms | **3.9x** |
+| 3 | 23.7ms | 22.6ms | ~1.0x |
+| 5 | 35.1ms | 26.1ms | **1.3x** |
+| 7 | 50.6ms | 27.3ms | **1.9x** |
 
-The pattern is striking: PD's TPOT barely moves (~12ms across the entire QPS range for DeepSeek-V3), while Agg's TPOT degrades linearly with load.
+The pattern is striking: PD's TPOT stays well-controlled (~22--27ms across the entire QPS range for DeepSeek-V3), while Agg's TPOT degrades linearly with load.
 
-**How Agg vs PD scale differently.** Scaling aggregated is linear and coarse-grained: each Agg replica provides roughly ~1 QPS of headroom before TPOT collapses. From our Qwen3-235B experiments: 2x Agg collapses at QPS ~3, 3x Agg at QPS ~4, 4x Agg at QPS ~5. To double your QPS capacity, you roughly double your replicas and GPUs.
+**How Agg vs PD scale differently.** Scaling aggregated is linear and coarse-grained: each Agg replica provides limited QPS headroom before TPOT collapses. From our Qwen3-235B experiments: 2x Agg hits the SLA ceiling at QPS ~1.5, 3x Agg at QPS ~1.5 (limited by per-replica saturation). To meaningfully increase QPS capacity, you need to add replicas and GPUs.
 
 PD scales more flexibly. You can add prefill or decode capacity independently based on the bottleneck:
 - Adding prefill replicas extends the QPS at which TTFT starts degrading, without affecting TPOT.
@@ -106,14 +106,12 @@ PD scales more flexibly. You can add prefill or decode capacity independently ba
 
 | GPUs | Best PD Config | PD Max QPS | Best Agg Config | Agg Max QPS |
 |------|---------------|------------|----------------|-------------|
-| 16 | 1P1D | 2.0 | 2Agg | 1.0 |
-| 24 | 2P1D | >=4.0 | 3Agg | ~3.5 |
-| 32 | 2P2D | ~3.5 | 4Agg | 2.0 |
+| 16 | 1P1D | 2.0 | 2Agg | 1.5 |
+| 24 | 2P1D | 4.0 | 3Agg | 1.5 |
 
-From our Qwen3-235B data (TP8, ISL=16K, OSL=1K, SLA: TPOT < 35ms):
-- 1P1D (16 GPU): sustains 2.0 QPS vs 2Agg's 1.0 QPS -- **PD 2x advantage**
-- 2P1D (24 GPU): sustains >=4.0 QPS -- **+100% capacity for +50% GPUs**
-- Compare: 2Agg (16 GPU) to 3Agg (24 GPU): 1.0 QPS to ~3.5 QPS -- Agg improves, but PD stays ahead at every GPU count
+From our Qwen3-235B data (TP8, ISL=16K, OSL=1K, SLA: TPOT < 25ms):
+- 1P1D (16 GPU): sustains 2.0 QPS vs 2Agg's 1.5 QPS -- **PD 1.33x advantage**
+- 2P1D (24 GPU): sustains 4.0 QPS vs 3Agg's 1.5 QPS -- **PD 2.67x advantage**
 
 PD's asymmetric scaling means each additional GPU goes where it matters most, rather than duplicating the entire serving stack.
 
@@ -127,19 +125,19 @@ The per-token TPOT advantage may look modest in isolation -- 10-20ms per token. 
 
 This compounding is the reason PD wins on E2E latency even though it loses on TTFT. The longer the output, the more the savings accumulate.
 
-**Concrete example (Qwen3-235B TP8, QPS=2):**
+**Concrete example (Qwen3-235B TP8, 24 GPU, QPS=4):**
 
 - TTFT penalty from PD: ~130ms (PD is slower to produce the first token)
-- TPOT savings per token: 17.7ms (Agg 45.4ms vs PD 27.7ms)
-- At **OSL=1,024**: 17.7ms x 1,024 = **18.1 seconds of total TPOT savings** vs 0.13s TTFT penalty --> **38% E2E win**
-- At **OSL=140**: 17.7ms x 140 = **2.5 seconds of savings** -- still wins, but the margin is smaller
+- TPOT savings per token: 5.1ms (Agg 29.9ms vs PD 24.8ms)
+- At **OSL=1,024**: 5.1ms x 1,024 = **5.2 seconds of total TPOT savings** vs 0.13s TTFT penalty --> clear E2E win
+- At **OSL=140**: 5.1ms x 140 = **0.7 seconds of savings** -- still wins, but the margin is smaller
 
 The E2E win percentage at a given QPS depends on many factors beyond just output length -- the P:D ratio, the specific QPS point, the model architecture. But the core mechanism holds universally: TPOT delta compounds over output tokens. Longer output means bigger PD win.
 
 **Cross-validation across workloads:**
 - Qwen3-235B at OSL=140, 80% cache hit rate: PD wins E2E by only **5%** at QPS=4 -- barely worth the complexity.
 - Qwen3-235B at OSL=1024, 80% cache hit rate: PD wins E2E by **24%** at the same conditions.
-- DeepSeek-V3 at OSL=140: TPOT advantage is already 2--4x, but short output limits the E2E gain. At OSL=1K, the 25.5ms per-token delta (at QPS=5) would compound to ~25.5 seconds of total savings -- a massive E2E win.
+- DeepSeek-V3 at OSL=140: TPOT advantage is 1.3x at QPS=5, but short output limits the E2E gain. At OSL=1K, the 9.0ms per-token delta (at QPS=5) would compound to ~9.0 seconds of total savings -- a significant E2E win.
 
 #### When this means PD loses -- short output sequences
 
@@ -160,7 +158,7 @@ This is the most practical insight for practitioners. The P:D ratio determines h
 | Long input, short output (ISL=16K, OSL=1K) | 0% | Prefill throughput | **2P:1D** | 2P1D TP8 beats 3x Agg TP8 at 24 GPUs |
 | Long input, long output (ISL=16K, OSL=4K) | 0% | Decode throughput | **1P:3D** | Single-decode PD loses to Agg by 6--40%; 1P3D flips it to 14% win |
 | Multi-turn with high cache reuse | 80% | Decode throughput | **1P:2D** | Cached prefill is cheap, shift GPUs to decode |
-| Multi-turn with moderate cache reuse | 30--60% | Mixed | **1P:1D** to **1P:2D** | DeepSeek study: 1P1D achieves 1.45--1.89x capacity advantage |
+| Multi-turn with moderate cache reuse | 30--60% | Mixed | **1P:1D** to **1P:2D** | DeepSeek study: 1P1D achieves 1.40--2.33x capacity advantage |
 
 **Why 2P:1D for long-input short-output.** At ISL=16K, OSL=1K with 0% cache hit rate, the prefill phase is compute-heavy and a single prefill replica saturates quickly. From our Qwen3-235B experiments:
 
@@ -201,9 +199,9 @@ The primary perspective: **same GPU footprint, higher QPS capacity under SLA.** 
 
 | Mode | Max Sustainable QPS (30% HR) | Max Sustainable QPS (60% HR) |
 |------|------------------------------|------------------------------|
-| PD (1P1D) | 7.0 | 7.1 |
-| Agg (2x) | 3.7 | 4.9 |
-| **PD Advantage** | **1.89x** | **1.45x** |
+| PD (1P1D) | 7.0 | 7.0 |
+| Agg (2x) | 3.0 | 5.0 |
+| **PD Advantage** | **2.33x** | **1.40x** |
 
 The alternative perspective: **same QPS target, fewer GPUs required.** This directly reduces cost.
 
@@ -219,12 +217,11 @@ The alternative perspective: **same QPS target, fewer GPUs required.** This dire
 
 | Target QPS | PD node-hours/day | Agg node-hours/day | Savings |
 |-----------|-------------------|-------------------|---------|
+| 3 | 48 | 48 | 0% |
 | 5 | 48 | 96 | **50%** |
-| 7 | 72 | 96 | **25%** |
-| 10 | 96 | 144 | **33%** |
-| 12 | 96 | 168 | **43%** |
+| 7 | 48 | 144 | **67%** |
 
-These cost savings are real and operational -- fewer nodes provisioned, fewer node-hours billed. Under a TPOT SLA, PD is always equal or cheaper than Agg because PD sustains 7.0 QPS vs Agg's 3.7 QPS per 2-node set (1.9x more efficient).
+These cost savings are real and operational -- fewer nodes provisioned, fewer node-hours billed. Under a TPOT SLA, PD is always equal or cheaper than Agg because PD sustains 7.0 QPS vs Agg's 3.0 QPS per 2-node set (2.3x more efficient). At high QPS targets where Agg needs multiple 2-node sets (each capped at 3.0 QPS), the savings compound -- up to 67% at QPS=7.
 
 ---
 
@@ -473,7 +470,7 @@ For a quick start, Anyscale + Digital Ocean provides a managed environment where
 
 ### Key Takeaways
 
-1. **PD disaggregation on Ray + vLLM delivers 25--50% cost savings** for TPOT- and E2E-sensitive workloads on AMD MI325X GPUs. Under a TPOT < 30ms SLA, PD sustains up to 1.9x more QPS than aggregated on the same hardware.
+1. **PD disaggregation on Ray + vLLM delivers up to 67% cost savings** for TPOT- and E2E-sensitive workloads on AMD MI325X GPUs. Under a TPOT < 30ms SLA, PD sustains up to 2.3x more QPS than aggregated on the same hardware.
 
 2. **The savings are workload-dependent.** Match your P:D ratio to your workload's ISL/OSL ratio and cache hit rate. Long inputs with short outputs need more prefill capacity (2P:1D). Long outputs need more decode capacity (1P:3D). The wrong ratio can make PD 67% worse than aggregated.
 
