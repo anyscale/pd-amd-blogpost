@@ -1,0 +1,71 @@
+cloud: amd2
+head_node:
+  instance_type: 66C-531G
+  resources:
+    CPU: 0
+    GPU: 0
+  flags: {}
+worker_nodes:
+  - instance_type: 132C-1062G-8xMI325X
+    name: worker-node-0
+    advanced_instance_config:
+      spec:
+        hostIPC: true
+        hostNetwork: true
+        imagePullPolicy: Always
+        dnsPolicy: ClusterFirstWithHostNet
+        dnsConfig:
+          nameservers:
+            - 8.8.8.8  # Google DNS fallback for external resolution
+        containers:
+          - name: ray
+            resources:
+              limits:
+                amd.com/gpu: 8
+                rdma/fabric0: 1
+                rdma/fabric1: 1
+                rdma/fabric2: 1
+                rdma/fabric3: 1
+                rdma/fabric4: 1
+                rdma/fabric5: 1
+                rdma/fabric6: 1
+                rdma/fabric7: 1
+              requests:
+                amd.com/gpu: 8
+            securityContext:
+              privileged: true
+              capabilities:
+                add:
+                  - IPC_LOCK
+                  - SYS_RESOURCE
+                  - SYS_PTRACE
+        securityContext:
+          # CRITICAL FIX: Add GID 991 to the container's group list
+          # This grants access to /dev/kfd and /dev/dri/renderD* devices owned by group 991 on the host
+          # Without this, torch.cuda.is_available() returns False even in privileged mode
+          supplementalGroups: [991]
+          privileged: true
+          capabilities:
+            add:
+              - IPC_LOCK
+              - SYS_RESOURCE
+              - SYS_PTRACE
+      metadata:
+        annotations:
+          k8s.v1.cni.cncf.io/networks: >-
+            anyscale-operator/roce-net-fabric0@fabric0,
+            anyscale-operator/roce-net-fabric1@fabric1,
+            anyscale-operator/roce-net-fabric2@fabric2,
+            anyscale-operator/roce-net-fabric3@fabric3,
+            anyscale-operator/roce-net-fabric4@fabric4,
+            anyscale-operator/roce-net-fabric5@fabric5,
+            anyscale-operator/roce-net-fabric6@fabric6,
+            anyscale-operator/roce-net-fabric7@fabric7
+    flags: {}
+    min_nodes: 2
+    max_nodes: 2
+    market_type: ON_DEMAND
+enable_cross_zone_scaling: false
+auto_select_worker_config: false
+flags:
+  allow-cross-zone-autoscaling: false
