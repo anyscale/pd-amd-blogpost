@@ -44,11 +44,6 @@ sed -i "s/REPLACE_WITH_YOUR_CLOUD/$CLOUD/" compute_configs/pd-amd-mi325x-autosca
 anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --name pd-amd-mi325x
 ```
 
-The `compute_configs/` directory has three variants:
-- `pd-amd-mi325x-2node.yaml` — fixed 2-node cluster (16 GPUs)
-- `pd-amd-mi325x-autoscale.yaml` — autoscaling 2-10 nodes (recommended)
-- `pd-amd-mi325x-headnode.yaml` — single GPU head node
-
 **4. Update serve configs with your cloud:**
 
 ```bash
