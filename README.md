@@ -39,7 +39,7 @@ draft/
 IMAGE="kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
 
 # Or build from Dockerfile:
-docker build -t $IMAGE .
+docker build --platform linux/amd64 -t $IMAGE .
 ```
 
 **2. Create a compute config on Anyscale:**
