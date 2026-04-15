@@ -70,31 +70,12 @@ PD eliminates this entirely. Decode runs on dedicated GPUs that never see a pref
 
 ### Insight 3: TPOT savings compound over output sequence length
 
-The per-token TPOT advantage may look modest in isolation -- 10-20ms per token. But it multiplies across every output token. The mechanism is simple arithmetic:
+PD's per-token TPOT advantage looks modest in isolation (5-10ms). But it multiplies across every output token: **Total savings = TPOT delta × output_length**. This compounding is why PD wins on E2E latency despite losing on TTFT.
 
-> **Total TPOT savings = (Agg TPOT - PD TPOT) x output_length**
+![TPOT compounding over output length](../figures/fig_4b_tpot_compounding.png)
+*Left: TPOT savings grow linearly with output length, quickly dwarfing the fixed TTFT penalty. Right: PD's E2E advantage ranges from ~5% at OSL=140 to ~15% at OSL=4K.*
 
-This compounding is the reason PD wins on E2E latency even though it loses on TTFT. The longer the output, the more the savings accumulate.
-
-**Concrete example (Qwen3-235B TP8, 24 GPU, QPS=4):**
-
-- TTFT penalty from PD: ~130ms (PD is slower to produce the first token)
-- TPOT savings per token: 5.1ms (Agg 29.9ms vs PD 24.8ms)
-- At **OSL=1,024**: 5.1ms x 1,024 = **5.2 seconds of total TPOT savings** vs 0.13s TTFT penalty --> clear E2E win
-- At **OSL=140**: 5.1ms x 140 = **0.7 seconds of savings** -- still wins, but the margin is smaller
-
-The E2E win percentage at a given QPS depends on many factors beyond just output length -- the P:D ratio, the specific QPS point, the model architecture. But the core mechanism holds universally: TPOT delta compounds over output tokens. Longer output means bigger PD win.
-
-**Cross-validation across workloads:**
-- Qwen3-235B at OSL=140, 80% cache hit rate: PD wins E2E by only **5%** at QPS=4 -- barely worth the complexity.
-- Qwen3-235B at OSL=1024, 80% cache hit rate: PD wins E2E by **24%** at the same conditions.
-- DeepSeek-V3 at OSL=140: TPOT advantage is 1.3x at QPS=5, but short output limits the E2E gain. At OSL=1K, the 9.0ms per-token delta (at QPS=5) would compound to ~9.0 seconds of total savings -- a significant E2E win.
-
-#### When this means PD loses -- short output sequences
-
-When output is short, the per-token TPOT savings do not accumulate enough to overcome the TTFT penalty. For short-output workloads -- classification, entity extraction, short QA -- use aggregated serving. The operational simplicity outweighs the marginal gains.
-
-**Takeaway:** The TPOT delta per token is the unit of PD's value. How that value translates to E2E improvement depends on your workload -- benchmark it. But directionally: longer output = bigger PD win.
+**When PD loses: short output.** For short-output workloads (classification, extraction, short QA), the savings don't accumulate enough to justify the complexity. Use aggregated.
 
 ---
 
