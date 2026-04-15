@@ -194,21 +194,21 @@ def fig3_ttft_vs_qps():
     ax_left.set_title("Qwen3-235B on MI325X")
     ax_left.legend(loc="best")
 
-    # --- Right panel: DeepSeek-V3 ---
-    qps_agg2 = [3.0, 4.0, 4.5, 5.0, 6.0]
-    ttft_agg2 = [253.7, 254.2, 268.9, 271.0, 281.8]
-    qps_pd2 = [3.0, 4.0, 4.5, 5.0, 6.0]
-    ttft_pd2 = [264.3, 260.4, 323.6, 262.9, 1521.2]
+    # --- Right panel: DeepSeek-V3 (re-run data, current cluster) ---
+    qps_agg2 = [3.0, 4.0, 4.5, 5.0, 6.0, 7.0]
+    ttft_agg2 = [260.2, 256.1, 255.9, 255.2, 276.8, 268.9]
+    qps_pd2 = [3.0, 4.0, 4.5, 5.0, 6.0, 7.0]
+    ttft_pd2 = [331.5, 331.2, 326.5, 339.9, 721.3, 2006.2]
 
     ax_right.plot(qps_agg2, ttft_agg2, color=COLOR_AGG, marker=MARKER_AGG,
-                  linewidth=2, markersize=7, label="Agg 2Agg TP8", zorder=3)
+                  linewidth=2, markersize=7, label="Agg 2×Agg TP8", zorder=3)
     ax_right.plot(qps_pd2, ttft_pd2, color=COLOR_PD, marker=MARKER_PD,
-                  linewidth=2, markersize=7, label="PD 1P1D TP8", zorder=3)
+                  linewidth=2, markersize=7, label="PD 1P:1D TP8", zorder=3)
     ax_right.set_yscale("log")
     ax_right.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
     ax_right.set_xlabel("QPS")
     ax_right.set_ylabel("TTFT (ms)")
-    ax_right.set_title("DeepSeek-V3 on MI325X")
+    ax_right.set_title("DeepSeek-V3 on MI325X (30% HR)")
     ax_right.legend(loc="best")
 
     plt.tight_layout()

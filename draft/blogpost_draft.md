@@ -23,14 +23,14 @@ This section covers the five key insights you need to reason about PD for any wo
 
 The most common misconception about PD is that it speeds up everything. It does not. On the metric that matters most for interactive responsiveness -- time to first token -- PD is consistently slower than aggregated serving on the same GPU footprint.
 
-**Why aggregated TTFT is already good.** In vLLM's scheduler, there is no separate "prefill phase" or "decode phase." The scheduler runs all currently-active requests -- both prefill and decode -- before admitting new requests from the waiting queue. Chunked prefill is enabled by default for all decoder-only models: long prompts are split into chunks sized by `max_num_batched_tokens` (default 8192 on MI325X). Each chunk runs as one scheduler iteration. Critically, decode steps consume trivially little budget per iteration. A batch of 128 concurrent decode requests uses at most 128 tokens out of the 8192-token budget, leaving the vast majority of each iteration available for prefill tokens. TTFT is therefore dominated by the raw compute time of the prefill forward pass (attention + MoE routing), not by contention with decode.
+**Why aggregated TTFT is already good.** In vLLM's scheduler, there is no separate "prefill phase" or "decode phase." The scheduler runs all currently-active requests -- both prefill and decode -- before admitting new requests from the waiting queue. Chunked prefill is enabled by default for all decoder-only models: long prompts are split into chunks sized by `max_num_batched_tokens` (defaults to 8192). Each chunk runs as one scheduler iteration. Critically, decode steps consume trivially little budget per iteration. A batch of 128 concurrent decode requests uses at most 128 tokens out of the 8192-token budget, leaving the vast majority of each iteration available for prefill tokens. TTFT is therefore dominated by the raw compute time of the prefill forward pass (attention + MoE routing), not by contention with decode.
 
-**What PD changes.** PD adds a KV cache transfer step after prefill completes. The prefill node sends KV data over the network (RDMA/RoCE) to the decode node. This transfer has inherent overhead that depends on model architecture, KV cache size, and network conditions. Under high load, prefill nodes can also queue up, adding queuing delay on top of transfer overhead.
+**What PD changes.** PD adds a KV cache transfer step after prefill completes. The prefill node sends KV data over the network (RDMA/RoCE) to the decode node. This transfer has inherent overhead that depends on model architecture, KV cache size, and network conditions. Under high load and kv-cache pressure, prefill nodes can also queue up, adding queuing delay on top of transfer overhead.
 
 **The net effect.** On the same GPU footprint, aggregated consistently achieves equal or lower TTFT than PD.
 
 ![Aggregated scheduler timeline](../figures/insight_1_agg_scheduler.png)
-*Chunked prefill in vLLM's aggregated scheduler. A new 10k-token request arriving at iteration N is split into two prefill chunks (8064 and 2048 tokens), each co-scheduled with the 128 ongoing decode requests. Prefill nearly saturates the 8192-token budget in both iterations, delivering fast TTFT for the new request — but stalling decode latency for all existing requests at N and N+1. From N+2 onward, the batch returns to a lightweight 129-token decode rhythm (1.6% of budget).*
+*In aggregated serving, decode tokens consume only ~1.6% of the scheduler's token budget per iteration — TTFT is dominated by prefill compute, not decode contention.*
 
 ![PD KV transfer overhead](../figures/insight_1_pd_kv_transfer.png)
 *In PD serving, the KV cache transfer step between prefill and decode nodes adds overhead that inflates TTFT.*
@@ -44,8 +44,8 @@ Key data points:
 |-------|--------|---------------------|-------|
 | Qwen3-235B (TP8) | Agg | ~560ms (stable across QPS 0.25--2.0) | No transfer overhead |
 | Qwen3-235B (TP8) | 1P1D | ~686ms at QPS=0.25, ~7,021ms at QPS=3.0 | Transfer + queuing at high load |
-| DeepSeek-V3 (TP8) | 2x Agg | ~254ms at QPS=3, ~282ms at QPS=6 | Stable, distributed across 2 replicas |
-| DeepSeek-V3 (TP8) | 1P1D | ~264ms at QPS=3, ~1,521ms at QPS=6 | Single prefill saturates |
+| DeepSeek-V3 (TP8) | 2x Agg | ~260ms at QPS=3, ~277ms at QPS=6 | Stable, distributed across 2 replicas |
+| DeepSeek-V3 (TP8) | 1P1D | ~332ms at QPS=3, ~721ms at QPS=6 | Single prefill saturates |
 
 Could you solve the TTFT gap by adding more prefill GPUs? Generally, no. TTFT improves sub-linearly with additional prefill capacity, so the added GPU cost rarely justifies the marginal TTFT improvement compared to what aggregated delivers natively.
 
@@ -370,6 +370,23 @@ This is currently implemented via `@serve.multiplexed` in our custom app code (`
 
 ![PD architecture diagram](../figures/fig_8_pd_architecture.png)
 *Figure 8: Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
+
+### Coordinated Autoscaling
+
+The config also includes a coordinated autoscaling policy (`CoordinatedPDPolicy`) that scales prefill and decode replicas together based on the configured ratio:
+
+```yaml
+autoscaling_policy:
+  policy_function: pd_app:CoordinatedPDPolicy
+  policy_kwargs:
+    ingress_ratio: 4
+    prefill_ratio: 1
+    decode_ratio: 1
+    target_qps_per_prefill: 10.0
+    target_qps_per_decode: 10.0
+```
+
+This ensures the P:D ratio stays fixed as the system scales up or down with traffic, avoiding the wrong-ratio trap described in Insight 4.
 
 ---
 
