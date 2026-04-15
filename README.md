@@ -2,25 +2,6 @@
 
 Reproduction repository for the blog post: *Achieving Up to 67% Cost Savings with Prefill-Decode Disaggregation Using Ray + vLLM on AMD MI325X*.
 
-## Repository Structure
-
-```
-serve_configs/
-  pd/                       # PD disaggregated configs (1P1D, 2P1D, 1P2D, 1P3D, 2P2D)
-  agg/                      # Aggregated baseline configs (2Agg, 3Agg, 4Agg)
-compute_configs/            # Anyscale compute config templates for AMD MI325X
-Dockerfile                  # Container image: vLLM 0.18.0 + RIXL + UCX on ROCm 7.0
-results/                    # Benchmark results (JSON)
-figures/                    # Charts and diagrams for the blog post
-scripts/
-  run_experiments.sh        # Full experiment runner (deploy → benchmark → save)
-  generate_serve_configs.py # Regenerate all serve configs programmatically
-  generate_blog_charts.py   # Regenerate all matplotlib charts
-  extract_sla_capacity.py   # Extract max QPS under SLA from result JSONs
-draft/
-  blogpost_draft.md         # Blog post markdown
-```
-
 ## Hardware Requirements
 
 - **GPUs:** AMD Instinct MI325X (288 GB HBM3e), 8 per node
