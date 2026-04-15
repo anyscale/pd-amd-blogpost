@@ -42,49 +42,115 @@ MARKER_AGG = "s"
 # Figure 1 — Hero Bar Chart: QPS Capacity Under SLA
 # ===================================================================
 def fig1_hero_bar():
-    # Qwen scenarios use TPOT < 25ms SLA (where PD advantage shows on current stack)
-    # DeepSeek scenarios use TPOT < 30ms SLA (from cai-anyscale-collab study)
-    scenarios = [
-        "Qwen3-235B\n24GPU ISL=16K\nOSL=1K 0%HR\n(TPOT<25ms)",
-        "Qwen3-235B\n24GPU ISL=8K\nOSL=1K 0%HR\n(TPOT<25ms)",
-        "Qwen3-235B\n32GPU ISL=16K\nOSL=4K 0%HR\n(TPOT<25ms)",
-        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 30%HR\n(TPOT<30ms)",
-        "DeepSeek-V3\n16GPU ISL=5.4K\nOSL=140 60%HR\n(TPOT<30ms)",
+    # Each scenario: (label, pd_config, pd_qps, agg_config, agg_qps, sla)
+    # QPS = max sustainable QPS for the ENTIRE SERVICE (not per-GPU)
+    data = [
+        {
+            "label": "Qwen3-235B\n24 GPU, ISL=16K\nOSL=1K, 0% HR",
+            "sla": "TPOT < 25ms",
+            "pd_config": "2P:1D TP8", "pd_qps": 4.0,
+            "agg_config": "3×Agg TP8", "agg_qps": 1.5,
+        },
+        {
+            "label": "Qwen3-235B\n24 GPU, ISL=8K\nOSL=1K, 0% HR",
+            "sla": "TPOT < 25ms",
+            "pd_config": "1P:2D TP8", "pd_qps": 5.0,
+            "agg_config": "3×Agg TP8", "agg_qps": 3.5,
+        },
+        {
+            "label": "DeepSeek-V3\n16 GPU, ISL=5.4K\nOSL=140, 30% HR",
+            "sla": "TPOT < 30ms",
+            "pd_config": "1P:1D TP8", "pd_qps": 7.0,
+            "agg_config": "2×Agg TP8", "agg_qps": 3.0,
+        },
+        {
+            "label": "DeepSeek-V3\n16 GPU, ISL=5.4K\nOSL=140, 60% HR",
+            "sla": "TPOT < 30ms",
+            "pd_config": "1P:1D TP8", "pd_qps": 7.0,
+            "agg_config": "2×Agg TP8", "agg_qps": 5.0,
+        },
+        {   # PD loses case: 32 GPU with enough Agg replicas
+            "label": "Qwen3-235B\n32 GPU, ISL=16K\nOSL=1K, 0% HR",
+            "sla": "TPOT < 25ms",
+            "pd_config": "2P:2D TP8", "pd_qps": 3.0,
+            "agg_config": "4×Agg TP8", "agg_qps": 4.0,
+        },
+        {   # PD loses case: high hit rate warm workload
+            "label": "Qwen3-235B\n32 GPU, ISL=16K\nOSL=4K, 0% HR",
+            "sla": "TPOT < 25ms",
+            "pd_config": "1P:3D TP8", "pd_qps": 1.5,
+            "agg_config": "4×Agg TP8", "agg_qps": 1.25,
+        },
     ]
-    pd_qps  = [4.0, 5.0, 1.5, 7.0, 7.0]
-    agg_qps = [1.5, 3.5, 1.25, 3.0, 5.0]
 
-    x = np.arange(len(scenarios))
-    width = 0.32
+    n = len(data)
+    x = np.arange(n)
+    width = 0.30
 
-    fig, ax = plt.subplots(figsize=(14, 6))
-    bars_pd  = ax.bar(x - width / 2, pd_qps,  width, color=COLOR_PD,
-                       edgecolor="white", linewidth=0.5, label="PD (best config)", zorder=3)
+    pd_qps = [d["pd_qps"] for d in data]
+    agg_qps = [d["agg_qps"] for d in data]
+
+    fig, ax = plt.subplots(figsize=(16, 7))
+
+    bars_pd = ax.bar(x - width / 2, pd_qps, width, color=COLOR_PD,
+                      edgecolor="white", linewidth=0.5, zorder=3)
     bars_agg = ax.bar(x + width / 2, agg_qps, width, color=COLOR_AGG,
-                       edgecolor="white", linewidth=0.5, label="Aggregated", zorder=3)
+                       edgecolor="white", linewidth=0.5, zorder=3)
 
-    # Annotate multiplier above each pair
-    for i in range(len(scenarios)):
+    # Label bars with config name + QPS value
+    for i, bar in enumerate(bars_pd):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.08,
+                f"{data[i]['pd_config']}\n{pd_qps[i]:.1f} QPS",
+                ha="center", va="bottom", fontsize=8, color=COLOR_PD,
+                fontweight="medium")
+    for i, bar in enumerate(bars_agg):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.08,
+                f"{data[i]['agg_config']}\n{agg_qps[i]:.1f} QPS",
+                ha="center", va="bottom", fontsize=8, color=COLOR_AGG,
+                fontweight="medium")
+
+    # Arrow + multiplier between each pair
+    for i in range(n):
         mult = pd_qps[i] / agg_qps[i]
-        top = max(pd_qps[i], agg_qps[i])
-        ax.text(x[i], top + 0.18, f"{mult:.1f}x",
-                ha="center", va="bottom", fontsize=11, fontweight="bold",
-                color=COLOR_PD)
+        pd_wins = mult >= 1.0
+        color = COLOR_WINNER if pd_wins else "#d62728"  # green or red
+        label = f"{mult:.1f}×" if pd_wins else f"{1/mult:.1f}× Agg"
 
-    # Annotate bar values
-    for bar in bars_pd:
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
-                f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
-    for bar in bars_agg:
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
-                f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
+        # Draw arrow from shorter bar to taller bar
+        lo = min(pd_qps[i], agg_qps[i])
+        hi = max(pd_qps[i], agg_qps[i])
+        mid_x = x[i]
+        arrow_x = mid_x + width * 0.75  # right of the bar pair
 
+        ax.annotate("", xy=(arrow_x, hi), xytext=(arrow_x, lo),
+                     arrowprops=dict(arrowstyle="->", color=color, lw=2.0,
+                                     shrinkA=2, shrinkB=2))
+        # Multiplier text next to arrow
+        mid_y = (lo + hi) / 2
+        ax.text(arrow_x + 0.12, mid_y, label,
+                ha="left", va="center", fontsize=10, fontweight="bold",
+                color=color)
+
+    # X-axis: scenario + SLA
+    labels = [f"{d['label']}\n({d['sla']})" for d in data]
     ax.set_xticks(x)
-    ax.set_xticklabels(scenarios, fontsize=9)
-    ax.set_ylabel("Max Sustainable QPS Under SLA")
-    ax.set_title("PD vs Aggregated: Max Sustainable QPS Under SLA (Same GPU Count)")
-    ax.legend(loc="upper left", fontsize=11)
-    ax.set_ylim(0, max(pd_qps) * 1.25)
+    ax.set_xticklabels(labels, fontsize=8.5, linespacing=1.1)
+
+    ax.set_ylabel("Max Sustainable QPS Under SLA\n(entire service, not per-GPU)", fontsize=11)
+    ax.set_title("PD vs Aggregated: Max Sustainable QPS Under SLA (Same GPU Count)",
+                  fontsize=13, fontweight="bold")
+
+    # Legend
+    from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Patch(facecolor=COLOR_PD, label="PD (best config)"),
+        Patch(facecolor=COLOR_AGG, label="Aggregated"),
+        Line2D([0], [0], color=COLOR_WINNER, lw=2, label="PD wins"),
+        Line2D([0], [0], color="#d62728", lw=2, label="Agg wins"),
+    ]
+    ax.legend(handles=legend_elements, loc="upper left", fontsize=10)
+    ax.set_ylim(0, max(max(pd_qps), max(agg_qps)) * 1.35)
 
     plt.tight_layout()
     path = os.path.join(FIGURES_DIR, "fig_1_hero_bar.png")
