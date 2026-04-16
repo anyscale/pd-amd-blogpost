@@ -59,13 +59,38 @@ docker build -t pd-vllm-ray .
 
 **2. Start a Ray cluster:**
 
-With KubeRay, use the compute config as a reference for your RayCluster spec — the key requirements are:
-- `hostIPC: true` and `hostNetwork: true` for RDMA
-- 8x `rdma/fabric` resources per node for RoCE
-- `supplementalGroups: [991]` for AMD GPU device access
-- `privileged: true` for RDMA operations
+**With KubeRay** — install the operator, then create a RayCluster or RayService. Use `compute_configs/pd-amd-mi325x-autoscale.yaml` as a reference for the pod spec.
 
-With bare metal:
+Resources:
+- [KubeRay quickstart](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started.html)
+- [KubeRay RayService guide](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/rayservice-quick-start.html) — deploys Ray Serve apps directly
+- [KubeRay Helm chart](https://github.com/ray-project/kuberay/tree/master/helm-chart/kuberay-operator)
+- [KubeRay AMD GPU example](https://github.com/ray-project/kuberay/tree/master/ray-operator/config/samples) — look for ROCm/AMD samples
+
+Key pod spec requirements for PD on AMD:
+
+```yaml
+spec:
+  hostIPC: true           # Required for RDMA shared memory
+  hostNetwork: true       # Required for RDMA RoCE networking
+  securityContext:
+    privileged: true
+    supplementalGroups: [991]  # AMD GPU device access (/dev/kfd, /dev/dri)
+  containers:
+  - resources:
+      limits:
+        amd.com/gpu: 8
+        rdma/fabric0: 1   # 8x RoCE fabric interfaces
+        rdma/fabric1: 1
+        rdma/fabric2: 1
+        rdma/fabric3: 1
+        rdma/fabric4: 1
+        rdma/fabric5: 1
+        rdma/fabric6: 1
+        rdma/fabric7: 1
+```
+
+**With bare metal:**
 
 ```bash
 # Head node
@@ -76,8 +101,6 @@ ray start --address=HEAD_NODE_IP:6379
 ```
 
 **3. Deploy:**
-
-The serve configs have Anyscale-specific fields (`cloud`, `compute_config`, `image_uri`) at the bottom — `ray serve deploy` ignores these and uses only the `applications` section:
 
 ```bash
 ray serve deploy serve_configs/pd/qwen235b_2p1d_tp8.yaml
