@@ -29,14 +29,6 @@ applications:
         max_ongoing_requests: 1000000
         logging_config:
           enable_access_log: false
-      runtime_env: &id001
-        env_vars:
-          SAFETENSORS_FAST_GPU: '1'
-          VLLM_ROCM_USE_AITER: '1'
-          VLLM_ROCM_USE_AITER_MOE: '1'
-          UCX_TLS: rc,sm,self,rocm_copy,rocm_ipc
-          UCX_NET_DEVICES: mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1
-          VLLM_MOE_ROUTING_SIMULATION_STRATEGY: uniform_random
     decode_config:
       model_loading_config:
         model_id: qwen3-235b
@@ -60,11 +52,7 @@ applications:
         max_ongoing_requests: 1000000
         logging_config:
           enable_access_log: false
-      runtime_env: *id001
     ingress_deployment_config:
       num_replicas: 16
       logging_config:
         enable_access_log: false
-name: qwen235b_pd_1p3d_tp8_service
-working_dir: .
-image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700

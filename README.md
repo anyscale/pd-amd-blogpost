@@ -31,12 +31,13 @@ anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --na
 
 **3. Deploy:**
 
-Pass `--cloud` and `--compute-config` at deploy time — no need to edit the YAML files:
+Pass `--cloud`, `--compute-config`, and `--image-uri` at deploy time — the YAML files contain only the application config:
 
 ```bash
 anyscale service deploy -f serve_configs/pd/qwen235b_2p1d_tp8.yaml \
   --cloud YOUR_CLOUD_NAME \
-  --compute-config pd-amd-mi325x
+  --compute-config pd-amd-mi325x \
+  --image-uri $IMAGE
 ```
 
 **4. Benchmark:**

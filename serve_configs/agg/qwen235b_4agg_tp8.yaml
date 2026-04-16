@@ -23,18 +23,7 @@ applications:
         num_replicas: 4
         logging_config:
           enable_access_log: false
-      runtime_env:
-        env_vars:
-          SAFETENSORS_FAST_GPU: '1'
-          VLLM_ROCM_USE_AITER: '1'
-          VLLM_ROCM_USE_AITER_MOE: '1'
-          UCX_TLS: rc,sm,self,rocm_copy,rocm_ipc
-          UCX_NET_DEVICES: mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1
-          VLLM_MOE_ROUTING_SIMULATION_STRATEGY: uniform_random
     ingress_deployment_config:
       autoscaling_config:
         min_replicas: 16
         max_replicas: 16
-name: qwen235b_agg_4_tp8_service
-working_dir: .
-image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700
