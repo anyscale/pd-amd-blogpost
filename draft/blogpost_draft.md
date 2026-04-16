@@ -225,9 +225,6 @@ app = build_pd_openai_app(dict(prefill_config=..., decode_config=...))
 
 This returns a fully wired Ray Serve application with an OpenAI-compatible API. The `build_pd_openai_app` function handles replica creation, ingress routing, and KV transfer coordination. You get `/v1/chat/completions` and `/v1/completions` endpoints out of the box.
 
-![PD architecture diagram](../figures/fig_8_pd_architecture.png)
-*Ray Serve PD topology — Ingress routes to Decode nodes, which forward to Prefill nodes. KV cache transferred via RIXL over RDMA.*
-
 ---
 
 ## How to Reproduce

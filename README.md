@@ -121,19 +121,6 @@ Interactive mode commands:
 | `agg/qwen235b_3agg_tp8.yaml` | 3 | 24 |
 | `agg/qwen235b_4agg_tp8.yaml` | 4 | 32 |
 
-## Running the Full Experiment Suite
-
-```bash
-# All experiments sequentially (~4-6 hours):
-./scripts/run_experiments.sh
-
-# Or run individual experiments:
-./scripts/run_experiments.sh exp1a_pd    # 2P1D PD, ISL=16K, OSL=1K
-./scripts/run_experiments.sh exp1a_agg   # 3Agg baseline for above
-```
-
-See `scripts/run_experiments.sh` for the complete list of experiments and exact benchmark commands.
-
 ## Software Stack
 
 | Component | Version |

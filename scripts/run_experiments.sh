@@ -1,21 +1,15 @@
 #!/bin/bash
-# Run all benchmark experiments for the PD disaggregation blog.
+# Run benchmark experiments for PD disaggregation on AMD MI325X.
 #
 # Usage:
-#   ./scripts/run_experiments.sh              # run all experiments
-#   ./scripts/run_experiments.sh exp1a_pd     # run a single experiment
+#   ./scripts/run_experiments.sh                          # run all
+#   ./scripts/run_experiments.sh pd_2p1d_isl16k_osl1k     # run one
 #
 # Prerequisites:
-#   - Ray cluster running with 4 nodes × 8 MI325X GPUs
-#   - ray serve CLI available
+#   - Ray cluster with 2-4 nodes × 8 MI325X GPUs
 #   - python -m ray.llm._internal.serve.benchmark available
 #
-# Each experiment:
-#   1. Deploys a serve config
-#   2. Waits for RUNNING status
-#   3. Runs a QPS sweep via interactive benchmark
-#   4. Saves results to results/qwen3_235b/<exp_name>/
-#   5. Shuts down the service
+# Each experiment deploys a config, sweeps QPS, saves results, shuts down.
 
 set -euo pipefail
 
@@ -28,179 +22,155 @@ BASE_URL="http://localhost:8000"
 
 deploy_and_wait() {
     local config="$1"
-    local max_wait=600  # 10 minutes max
+    local max_wait=600
     local elapsed=0
     echo ">>> Deploying ${config}..."
     cd "${REPO_ROOT}"
     ray serve deploy "serve_configs/${config}" 2>&1
-    echo ">>> Waiting for RUNNING status (max ${max_wait}s)..."
+    echo ">>> Waiting for RUNNING (max ${max_wait}s)..."
     while [ $elapsed -lt $max_wait ]; do
-        # Look for application-level status (skip proxy status lines)
         local app_status=$(ray serve status 2>/dev/null | grep -A2 'applications:' | grep 'status:' | head -1 | awk '{print $2}')
         if [ "$app_status" = "RUNNING" ]; then
-            echo ">>> Service is RUNNING (after ${elapsed}s)"
+            echo ">>> RUNNING after ${elapsed}s"
             break
         elif [ "$app_status" = "DEPLOY_FAILED" ]; then
-            echo ">>> DEPLOY_FAILED after ${elapsed}s — aborting"
-            ray serve status 2>/dev/null | head -30
-            return 1
+            echo ">>> DEPLOY_FAILED"; ray serve status 2>/dev/null | head -20; return 1
         fi
-        sleep 15
-        elapsed=$((elapsed + 15))
-        echo ">>>   ... waiting (${elapsed}s, app_status='${app_status}')"
+        sleep 15; elapsed=$((elapsed + 15))
     done
-    if [ $elapsed -ge $max_wait ]; then
-        echo ">>> Timed out waiting for service after ${max_wait}s"
-        ray serve status 2>/dev/null | head -30
-        return 1
-    fi
-    # Extra settle time for vLLM engine warm-up
+    [ $elapsed -ge $max_wait ] && { echo ">>> Timed out"; return 1; }
     sleep 15
-    # Smoke test
     echo ">>> Smoke test..."
-    ${BENCHMARK} -u ${BASE_URL} -m ${MODEL} --tokenizer ${TOKENIZER} -s 2>&1 | tail -5
+    ${BENCHMARK} -u ${BASE_URL} -m ${MODEL} --tokenizer ${TOKENIZER} -s 2>&1 | tail -3
 }
 
 shutdown_service() {
-    echo ">>> Shutting down service..."
+    echo ">>> Shutting down..."
     ray serve shutdown -y 2>&1
     sleep 10
 }
 
 run_sweep() {
-    local exp_name="$1"
-    local isl="$2"
-    local osl="$3"
-    local hit_rate="$4"
-    local num_turns="$5"
-    local qps_list="$6"
-    local num_sessions="${7:-50}"
-
-    local save_dir="${RESULTS_DIR}/${exp_name}"
+    local result_name="$1" isl="$2" osl="$3" hr="$4" turns="$5" qps_list="$6"
+    local sessions="${7:-50}"
+    local save_dir="${RESULTS_DIR}/${result_name}"
     mkdir -p "${save_dir}"
-
-    echo ">>> Running benchmark: ${exp_name}"
-    echo ">>>   Workload: ISL=${isl}, OSL=${osl}, HR=${hit_rate}, turns=${num_turns}"
-    echo ">>>   QPS sweep: ${qps_list}"
-    echo ">>>   Sessions per point: ${num_sessions}"
-    echo ">>>   Save dir: ${save_dir}"
-
-    # Run each QPS point individually for clean results
+    echo ">>> Sweep: ${result_name} (ISL=${isl}, OSL=${osl}, HR=${hr}, turns=${turns})"
     IFS=',' read -ra QPS_ARRAY <<< "${qps_list}"
     for qps in "${QPS_ARRAY[@]}"; do
         local qps_tag=$(echo "$qps" | tr '.' 'p')
-        local save_file="${save_dir}/qps_${qps_tag}.json"
-
-        echo ">>>   QPS=${qps} → ${save_file}"
-        ${BENCHMARK} \
-            -u ${BASE_URL} \
-            -m ${MODEL} \
-            --tokenizer ${TOKENIZER} \
-            --isl ${isl} \
-            --osl ${osl} \
-            --hit-rate ${hit_rate} \
-            --num-turns ${num_turns} \
-            --request-rate ${qps} \
-            --num-sessions ${num_sessions} \
-            --save-result "${save_file}" \
-            2>&1 | tail -5
-
-        echo ">>>   Done QPS=${qps}"
+        echo "  QPS=${qps}"
+        ${BENCHMARK} -u ${BASE_URL} -m ${MODEL} --tokenizer ${TOKENIZER} \
+            --isl ${isl} --osl ${osl} --hit-rate ${hr} --num-turns ${turns} \
+            --request-rate ${qps} --num-sessions ${sessions} \
+            --save-result "${save_dir}/qps_${qps_tag}.json" 2>&1 | tail -3
     done
-
-    echo ">>> Experiment ${exp_name} complete. Results in ${save_dir}/"
 }
 
 # ============================================================
-# EXPERIMENT DEFINITIONS
+# EXPERIMENTS — naming: {config}_{workload}
 # ============================================================
 
-exp1a_pd() {
-    echo "=== EXP-1a PD: 2P1D TP8 (24 GPU), ISL=16K, OSL=1K, 0% HR ==="
+# --- ISL=16K, OSL=1K, 0% HR (24 GPU) ---
+pd_2p1d_isl16k_osl1k() {
     deploy_and_wait "pd/qwen235b_2p1d_tp8.yaml"
-    run_sweep "exp1a_2p1d_tp8" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    run_sweep "pd_2p1d_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
     shutdown_service
 }
-
-exp1a_agg() {
-    echo "=== EXP-1a Agg: 3Agg TP8 (24 GPU), ISL=16K, OSL=1K, 0% HR ==="
+agg_3x_isl16k_osl1k() {
     deploy_and_wait "agg/qwen235b_3agg_tp8.yaml"
-    run_sweep "exp1a_3agg_tp8" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
-    # Reuse for EXP-1d Agg (same config, different workload)
-    run_sweep "exp1d_3agg_tp8" 8000 1024 0.0 1 "0.5,1.0,2.0,3.0,4.0,5.0"
+    run_sweep "agg_3x_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
     shutdown_service
 }
 
-exp1d_pd() {
-    echo "=== EXP-1d PD: 1P2D TP8 (24 GPU), ISL=8K, OSL=1K, 0% HR ==="
+# --- ISL=8K, OSL=1K, 0% HR (24 GPU) ---
+pd_1p2d_isl8k_osl1k() {
     deploy_and_wait "pd/qwen235b_1p2d_tp8.yaml"
-    run_sweep "exp1d_1p2d_tp8" 8000 1024 0.0 1 "0.5,1.0,2.0,3.0,4.0,5.0"
-    # Reuse for EXP-3c (same config, different workload)
-    run_sweep "exp3c_1p2d_tp8" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    run_sweep "pd_1p2d_isl8k_osl1k_hr0" 8000 1024 0.0 1 "0.5,1.0,2.0,3.0,4.0,5.0"
     shutdown_service
 }
-
-exp1c_pd() {
-    echo "=== EXP-1c PD: 1P2D TP8 + cache (24 GPU), ISL=8K, OSL=1K, 80% HR, 5 turns ==="
-    deploy_and_wait "pd/qwen235b_1p2d_tp8_cache.yaml"
-    run_sweep "exp1c_1p2d_tp8_cache" 8000 1024 0.8 5 "0.5,1.0,2.0,3.0,4.0,5.0,6.0" 30
-    shutdown_service
-}
-
-exp1c_agg() {
-    echo "=== EXP-1c Agg: 3Agg TP8 (24 GPU), ISL=8K, OSL=1K, 80% HR, 5 turns ==="
-    # Note: 3Agg config does not have prefix_caching — need to verify if the
-    # default enables it or if we need a separate config
+agg_3x_isl8k_osl1k() {
     deploy_and_wait "agg/qwen235b_3agg_tp8.yaml"
-    run_sweep "exp1c_3agg_tp8" 8000 1024 0.8 5 "0.5,1.0,2.0,3.0,4.0,5.0,6.0" 30
+    run_sweep "agg_3x_isl8k_osl1k_hr0" 8000 1024 0.0 1 "0.5,1.0,2.0,3.0,4.0,5.0"
     shutdown_service
 }
 
-exp1b_pd() {
-    echo "=== EXP-1b PD: 1P3D TP8 (32 GPU), ISL=16K, OSL=4K, 0% HR ==="
+# --- ISL=8K, OSL=1K, 60% HR (24 GPU) ---
+pd_1p2d_isl8k_osl1k_hr60() {
+    deploy_and_wait "pd/qwen235b_1p2d_tp8_cache.yaml"
+    run_sweep "pd_1p2d_isl8k_osl1k_hr60" 8000 1024 0.6 1 "0.5,1.0,2.0,3.0,4.0,5.0,6.0"
+    shutdown_service
+}
+agg_3x_isl8k_osl1k_hr60() {
+    deploy_and_wait "agg/qwen235b_3agg_tp8.yaml"
+    run_sweep "agg_3x_isl8k_osl1k_hr60" 8000 1024 0.6 1 "0.5,1.0,2.0,3.0,4.0,5.0,6.0"
+    shutdown_service
+}
+
+# --- ISL=16K, OSL=4K, 0% HR (32 GPU) ---
+pd_1p3d_isl16k_osl4k() {
     deploy_and_wait "pd/qwen235b_1p3d_tp8.yaml"
-    run_sweep "exp1b_1p3d_tp8" 16000 4096 0.0 1 "0.25,0.5,0.75,1.0,1.25,1.5"
-    # Reuse for EXP-3f (same config, different workload)
-    run_sweep "exp3f_1p3d_tp8" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    run_sweep "pd_1p3d_isl16k_osl4k_hr0" 16000 4096 0.0 1 "0.25,0.5,0.75,1.0,1.25,1.5" 20
     shutdown_service
 }
-
-exp1b_agg() {
-    echo "=== EXP-1b Agg: 4Agg TP8 (32 GPU), ISL=16K, OSL=4K, 0% HR ==="
+agg_4x_isl16k_osl4k() {
     deploy_and_wait "agg/qwen235b_4agg_tp8.yaml"
-    run_sweep "exp1b_4agg_tp8" 16000 4096 0.0 1 "0.25,0.5,0.75,1.0,1.25,1.5"
+    run_sweep "agg_4x_isl16k_osl4k_hr0" 16000 4096 0.0 1 "0.25,0.5,0.75,1.0,1.25,1.5" 10
     shutdown_service
 }
 
-exp3d() {
-    echo "=== EXP-3d: 2P2D TP8 (32 GPU), ISL=16K, OSL=1K, 0% HR ==="
+# --- Scaling curve: ISL=16K, OSL=1K, 0% HR (various GPU counts) ---
+pd_1p1d_isl16k_osl1k() {
+    deploy_and_wait "pd/qwen235b_1p1d_tp8.yaml"
+    run_sweep "pd_1p1d_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    shutdown_service
+}
+agg_2x_isl16k_osl1k() {
+    deploy_and_wait "agg/qwen235b_2agg_tp8.yaml"
+    run_sweep "agg_2x_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    shutdown_service
+}
+agg_4x_isl16k_osl1k() {
+    deploy_and_wait "agg/qwen235b_4agg_tp8.yaml"
+    run_sweep "agg_4x_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    shutdown_service
+}
+pd_1p2d_isl16k_osl1k() {
+    deploy_and_wait "pd/qwen235b_1p2d_tp8.yaml"
+    run_sweep "pd_1p2d_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    shutdown_service
+}
+pd_2p2d_isl16k_osl1k() {
     deploy_and_wait "pd/qwen235b_2p2d_tp8.yaml"
-    run_sweep "exp3d_2p2d_tp8" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    run_sweep "pd_2p2d_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
+    shutdown_service
+}
+pd_1p3d_isl16k_osl1k() {
+    deploy_and_wait "pd/qwen235b_1p3d_tp8.yaml"
+    run_sweep "pd_1p3d_isl16k_osl1k_hr0" 16000 1024 0.0 1 "0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0"
     shutdown_service
 }
 
 # ============================================================
 # MAIN
 # ============================================================
-
 if [ $# -eq 0 ]; then
-    echo "Running ALL experiments sequentially..."
-    echo "Estimated time: 4-6 hours (8 deploys × ~30-45 min each)"
-    echo ""
-    exp1a_pd
-    exp1a_agg
-    exp1d_pd
-    exp1c_pd
-    exp1c_agg
-    exp1b_pd
-    exp1b_agg
-    exp3d
-    echo ""
+    echo "Running all experiments sequentially..."
+    pd_2p1d_isl16k_osl1k
+    agg_3x_isl16k_osl1k
+    pd_1p2d_isl8k_osl1k
+    agg_3x_isl8k_osl1k
+    pd_1p2d_isl8k_osl1k_hr60
+    agg_3x_isl8k_osl1k_hr60
+    pd_1p3d_isl16k_osl4k
+    agg_4x_isl16k_osl4k
+    pd_1p1d_isl16k_osl1k
+    agg_2x_isl16k_osl1k
+    agg_4x_isl16k_osl1k
+    pd_1p2d_isl16k_osl1k
+    pd_2p2d_isl16k_osl1k
+    pd_1p3d_isl16k_osl1k
     echo "=== ALL EXPERIMENTS COMPLETE ==="
-    echo "Results in: ${RESULTS_DIR}/"
 else
-    # Run specific experiment(s)
-    for exp in "$@"; do
-        ${exp}
-    done
+    for exp in "$@"; do "${exp}"; done
 fi
