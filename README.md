@@ -23,41 +23,23 @@ IMAGE="kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
 docker build --platform linux/amd64 -t $IMAGE .
 ```
 
-**2. Find your Anyscale cloud name:**
+**2. Create a compute config on Anyscale:**
 
 ```bash
-# List available clouds — pick the one with your AMD MI325X nodes
-anyscale cloud list --no-interactive
-
-# Grab the first cloud name:
-CLOUD=$(anyscale cloud list --json --no-interactive | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])")
-echo "Using cloud: $CLOUD"
-```
-
-**3. Create a compute config on Anyscale:**
-
-```bash
-# Set your cloud name in the compute config
-sed -i "s/REPLACE_WITH_YOUR_CLOUD/$CLOUD/" compute_configs/pd-amd-mi325x-autoscale.yaml
-
-# Register it
 anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --name pd-amd-mi325x
 ```
 
-**4. Update serve configs with your cloud:**
+**3. Deploy:**
+
+Pass `--cloud` and `--compute-config` at deploy time — no need to edit the YAML files:
 
 ```bash
-# Set cloud name in all serve configs
-find serve_configs -name '*.yaml' -exec sed -i "s/^cloud: .*/cloud: $CLOUD/" {} +
+anyscale service deploy -f serve_configs/pd/qwen235b_2p1d_tp8.yaml \
+  --cloud YOUR_CLOUD_NAME \
+  --compute-config pd-amd-mi325x
 ```
 
-**5. Deploy:**
-
-```bash
-anyscale service deploy -f serve_configs/pd/qwen235b_2p1d_tp8.yaml
-```
-
-**5. Benchmark:**
+**4. Benchmark:**
 
 ```bash
 python -m ray.llm._internal.serve.benchmark -i \

@@ -1,4 +1,4 @@
-cloud: REPLACE_WITH_YOUR_CLOUD
+cloud: YOUR_CLOUD_NAME
 head_node:
   instance_type: 66C-531G
   resources:

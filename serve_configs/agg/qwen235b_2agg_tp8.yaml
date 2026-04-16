@@ -33,7 +33,5 @@ applications:
         max_replicas: 16
 name: qwen235b_agg_2_tp8_service
 working_dir: .
-cloud: ''
-compute_config: pd-amd-mi325x
 image_uri: kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700
 env_vars:
