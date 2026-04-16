@@ -9,6 +9,8 @@ Reproduction repository for the blog post: *Achieving Up to 67% Cost Savings wit
 - **Recommended:** 4 nodes (32 GPUs) for exploring P:D ratios
 - **Networking:** RDMA-capable RoCE fabric with 8x Mellanox ConnectX interfaces per node
 
+**Prerequisites:** These instructions assume you already have a Ray cluster running on AMD MI325X nodes (via Anyscale, KubeRay, or bare metal). The serve configs and benchmarks run on top of an existing cluster.
+
 ## Quick Start
 
 ### Option A: Run on Anyscale

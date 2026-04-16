@@ -229,7 +229,7 @@ This returns a fully wired Ray Serve application with an OpenAI-compatible API. 
 
 ## How to Reproduce
 
-Everything needed to reproduce these results is consolidated in a single repository: Dockerfile, serve configs, and benchmark scripts.
+Everything needed to reproduce these results is consolidated in a single repository: Dockerfile, serve configs, and benchmark scripts. The instructions assume you have a Ray cluster running on AMD MI325X nodes — via [Anyscale](https://docs.anyscale.com/get-started), [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started.html), or bare metal.
 
 ### Cluster Requirements
 
