@@ -14,10 +14,10 @@ Reproduction repository for the blog post: *Achieving Up to 67% Cost Savings wit
 ### Option A: Run on Anyscale
 
 If you're new to Anyscale, start here:
-- [Anyscale getting started](https://docs.anyscale.com/get-started/)
-- [Create an Anyscale Cloud on Kubernetes](https://docs.anyscale.com/clouds/manage-clouds/create-cloud/) — required for on-prem AMD clusters
-- [Anyscale Services (Ray Serve)](https://docs.anyscale.com/services/get-started/)
-- [Custom container images on Anyscale](https://docs.anyscale.com/reference/custom-images/)
+- [Anyscale getting started](https://docs.anyscale.com/get-started)
+- [Deploy Anyscale on Kubernetes](https://docs.anyscale.com/admin/cloud/kubernetes)
+- [Anyscale Service API](https://docs.anyscale.com/reference/service-api)
+- [Anyscale base images](https://docs.anyscale.com/reference/base-images)
 
 **1. Build or use the pre-built container image:**
 
@@ -71,7 +71,6 @@ Resources:
 - [KubeRay quickstart](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started.html)
 - [KubeRay RayService guide](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/rayservice-quick-start.html) — deploys Ray Serve apps directly
 - [KubeRay Helm chart](https://github.com/ray-project/kuberay/tree/master/helm-chart/kuberay-operator)
-- [KubeRay AMD GPU example](https://github.com/ray-project/kuberay/tree/master/ray-operator/config/samples) — look for ROCm/AMD samples
 
 Key pod spec requirements for PD on AMD:
 
