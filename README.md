@@ -47,7 +47,8 @@ anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --na
 **4. Update serve configs with your cloud:**
 
 ```bash
-# Set CLOUD in the generator and regenerate all configs:
+# Set cloud name in all serve configs
+find serve_configs -name '*.yaml' -exec sed -i "s/^cloud: .*/cloud: $CLOUD/" {} +
 ```
 
 **5. Deploy:**
