@@ -12,7 +12,7 @@ worker_nodes:
       spec:
         hostIPC: true
         hostNetwork: true
-        # imagePullPolicy: Always
+        imagePullPolicy: Always
         dnsPolicy: ClusterFirstWithHostNet
         dnsConfig:
           nameservers:

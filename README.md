@@ -48,8 +48,6 @@ anyscale compute-config create compute_configs/pd-amd-mi325x-autoscale.yaml --na
 
 ```bash
 # Set CLOUD in the generator and regenerate all configs:
-sed -i "s/^CLOUD = .*/CLOUD = \"$CLOUD\"/" scripts/generate_serve_configs.py
-python scripts/generate_serve_configs.py
 ```
 
 **5. Deploy:**
