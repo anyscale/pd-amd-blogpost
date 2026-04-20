@@ -40,9 +40,9 @@ worker_nodes:
                   - SYS_RESOURCE
                   - SYS_PTRACE
         securityContext:
-          # CRITICAL FIX: Add GID 991 to the container's group list
-          # This grants access to /dev/kfd and /dev/dri/renderD* devices owned by group 991 on the host
-          # Without this, torch.cuda.is_available() returns False even in privileged mode
+          # Required: GID 991 grants the container access to /dev/kfd and
+          # /dev/dri/renderD* on AMD hosts. Without it, torch.cuda.is_available()
+          # returns False even in privileged mode.
           supplementalGroups: [991]
           privileged: true
           capabilities:

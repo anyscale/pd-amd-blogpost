@@ -21,15 +21,15 @@ If you're new to Anyscale, start here:
 - [Anyscale Service API](https://docs.anyscale.com/reference/service-api)
 - [Anyscale base images](https://docs.anyscale.com/reference/base-images)
 
-**1. Build or use the pre-built container image:**
+**1. Build the container image:**
 
 ```bash
-# Pre-built:
-IMAGE="kouroshhahkha/anyscale-rayllm:nightly-py312-rocm700"
-
-# Or build from Dockerfile:
+IMAGE="pd-vllm-rocm:latest"
 docker build --platform linux/amd64 -t $IMAGE .
 ```
+
+Push `$IMAGE` to a registry your Anyscale cloud can pull from before the
+deploy step below.
 
 **2. Create a compute config on Anyscale:**
 
@@ -59,10 +59,13 @@ python -m ray.llm._internal.serve.benchmark -i \
 
 **1. Build the container image:**
 
+The Dockerfile exposes `BASE_IMAGE` as a build argument. Pass the OSS Ray
+base instead of the Anyscale default:
+
 ```bash
-# For OSS Ray, change the base image in the Dockerfile:
-# FROM rayproject/ray:nightly-py312-cu128  (instead of anyscale/ray:...)
-docker build -t pd-vllm-ray .
+docker build \
+  --build-arg BASE_IMAGE=rayproject/ray:nightly-py312-cu128 \
+  -t pd-vllm-rocm .
 ```
 
 **2. Start a Ray cluster:**

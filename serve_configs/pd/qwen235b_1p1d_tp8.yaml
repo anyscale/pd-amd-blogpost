@@ -1,6 +1,5 @@
 # PD — Qwen3-235B-A22B-FP8 (1P1D, TP8/EP8)
 # 16 GPUs (2 nodes). Prefill-heavy ratio for long-input short-output.
-# Used for: EXP-scaling-16gpu
 
 applications:
 - name: pd-qwen235b

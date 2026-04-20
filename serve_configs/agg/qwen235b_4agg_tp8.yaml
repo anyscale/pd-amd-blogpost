@@ -1,6 +1,5 @@
 # Aggregated — Qwen3-235B-A22B-FP8 (4 replicas, TP8/EP8)
 # 32 GPUs (4 nodes). Agg baseline for 32-GPU comparisons.
-# Used for: EXP-1b, EXP-3i
 
 applications:
 - name: aggregated-qwen235b

@@ -1,6 +1,5 @@
 # PD — Qwen3-235B-A22B-FP8 (1P3D, TP8/EP8)
 # 32 GPUs (4 nodes). Decode-heavy ratio for long output.
-# Used for: EXP-1b, EXP-3f
 
 applications:
 - name: pd-qwen235b

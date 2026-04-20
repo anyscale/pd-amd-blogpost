@@ -1,6 +1,5 @@
 # PD — Qwen3-235B-A22B-FP8 (2P2D, TP8/EP8)
 # 32 GPUs (4 nodes). Balanced ratio.
-# Used for: EXP-3d
 
 applications:
 - name: pd-qwen235b

@@ -69,12 +69,6 @@ def fig1_hero_bar():
             "pd_config": "1P:1D TP8", "pd_qps": 7.0,
             "agg_config": "2×Agg TP8", "agg_qps": 5.0,
         },
-        {   # PD loses case: 32 GPU with enough Agg replicas
-            "label": "Qwen3-235B\n32 GPU, ISL=16K\nOSL=1K, 0% HR",
-            "sla": "TPOT < 25ms",
-            "pd_config": "2P:2D TP8", "pd_qps": 3.0,
-            "agg_config": "4×Agg TP8", "agg_qps": 4.0,
-        },
         {   # PD neutral case: high hit rate makes prefill cheap
             "label": "Qwen3-235B\n24 GPU, ISL=8K\nOSL=1K, 60% HR",
             "sla": "TPOT < 25ms",
@@ -184,9 +178,9 @@ def fig3_ttft_vs_qps():
     ttft_pd = [704, 697, 686, 7021]
 
     ax_left.plot(qps_agg, ttft_agg, color=COLOR_AGG, marker=MARKER_AGG,
-                 linewidth=2, markersize=7, label="Agg TP8 (2 replicas)", zorder=3)
+                 linewidth=2, markersize=7, label="Agg: 2x TP8", zorder=3)
     ax_left.plot(qps_pd, ttft_pd, color=COLOR_PD, marker=MARKER_PD,
-                 linewidth=2, markersize=7, label="PD 1P1D TP8", zorder=3)
+                 linewidth=2, markersize=7, label="PD: 1P:TP8 1D:TP8", zorder=3)
     ax_left.set_yscale("log")
     ax_left.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
     ax_left.set_xlabel("QPS")
@@ -201,14 +195,14 @@ def fig3_ttft_vs_qps():
     ttft_pd2 = [331.5, 331.2, 326.5, 339.9, 721.3, 2006.2]
 
     ax_right.plot(qps_agg2, ttft_agg2, color=COLOR_AGG, marker=MARKER_AGG,
-                  linewidth=2, markersize=7, label="Agg 2×Agg TP8", zorder=3)
+                  linewidth=2, markersize=7, label="Agg: 2x TP8", zorder=3)
     ax_right.plot(qps_pd2, ttft_pd2, color=COLOR_PD, marker=MARKER_PD,
-                  linewidth=2, markersize=7, label="PD 1P:1D TP8", zorder=3)
+                  linewidth=2, markersize=7, label="PD: 1P:TP8 1D:TP8", zorder=3)
     ax_right.set_yscale("log")
     ax_right.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
     ax_right.set_xlabel("QPS")
     ax_right.set_ylabel("TTFT (ms)")
-    ax_right.set_title("DeepSeek-V3 on MI325X (30% HR)")
+    ax_right.set_title("DeepSeek-V3 on MI325X (30% Hit Rate)")
     ax_right.legend(loc="best")
 
     plt.tight_layout()
