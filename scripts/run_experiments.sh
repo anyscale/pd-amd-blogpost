@@ -152,6 +152,46 @@ pd_1p3d_isl16k_osl1k() {
 }
 
 # ============================================================
+# DeepSeek-V3 — ISL=5.4K, OSL=140 (16 GPU, prefix caching)
+# ============================================================
+# Each function temporarily overrides MODEL/TOKENIZER/RESULTS_DIR so the
+# shared deploy_and_wait/run_sweep helpers route to the DeepSeek model and
+# results directory.
+
+deepseek_pd_1p1d_isl5k_osl140_hr30() {
+    local MODEL="deepseek-v3"
+    local TOKENIZER="deepseek-ai/DeepSeek-V3-0324"
+    local RESULTS_DIR="${REPO_ROOT}/results/deepseek_v3"
+    deploy_and_wait "pd/deepseek_v3_1p1d_tp8.yaml"
+    run_sweep "pd_1p1d_isl5k_osl140_hr30" 5400 140 0.3 1 "3.0,4.0,4.5,5.0,6.0,7.0"
+    shutdown_service
+}
+deepseek_pd_1p1d_isl5k_osl140_hr60() {
+    local MODEL="deepseek-v3"
+    local TOKENIZER="deepseek-ai/DeepSeek-V3-0324"
+    local RESULTS_DIR="${REPO_ROOT}/results/deepseek_v3"
+    deploy_and_wait "pd/deepseek_v3_1p1d_tp8.yaml"
+    run_sweep "pd_1p1d_isl5k_osl140_hr60" 5400 140 0.6 1 "3.0,4.0,4.5,5.0,6.0,7.0"
+    shutdown_service
+}
+deepseek_agg_2x_isl5k_osl140_hr30() {
+    local MODEL="deepseek-v3"
+    local TOKENIZER="deepseek-ai/DeepSeek-V3-0324"
+    local RESULTS_DIR="${REPO_ROOT}/results/deepseek_v3"
+    deploy_and_wait "agg/deepseek_v3_2agg_tp8.yaml"
+    run_sweep "agg_2x_isl5k_osl140_hr30" 5400 140 0.3 1 "3.0,4.0,4.5,5.0,6.0,7.0"
+    shutdown_service
+}
+deepseek_agg_2x_isl5k_osl140_hr60() {
+    local MODEL="deepseek-v3"
+    local TOKENIZER="deepseek-ai/DeepSeek-V3-0324"
+    local RESULTS_DIR="${REPO_ROOT}/results/deepseek_v3"
+    deploy_and_wait "agg/deepseek_v3_2agg_tp8.yaml"
+    run_sweep "agg_2x_isl5k_osl140_hr60" 5400 140 0.6 1 "3.0,4.0,4.5,5.0,6.0,7.0"
+    shutdown_service
+}
+
+# ============================================================
 # MAIN
 # ============================================================
 if [ $# -eq 0 ]; then
@@ -170,6 +210,10 @@ if [ $# -eq 0 ]; then
     pd_1p2d_isl16k_osl1k
     pd_2p2d_isl16k_osl1k
     pd_1p3d_isl16k_osl1k
+    deepseek_pd_1p1d_isl5k_osl140_hr30
+    deepseek_pd_1p1d_isl5k_osl140_hr60
+    deepseek_agg_2x_isl5k_osl140_hr30
+    deepseek_agg_2x_isl5k_osl140_hr60
     echo "=== ALL EXPERIMENTS COMPLETE ==="
 else
     for exp in "$@"; do "${exp}"; done

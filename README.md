@@ -11,6 +11,37 @@ Reproduction repository for the blog post: *Achieving Up to 67% Cost Savings wit
 
 **Prerequisites:** These instructions assume you already have a Ray cluster running on AMD MI325X nodes (via Anyscale, KubeRay, or bare metal). The serve configs and benchmarks run on top of an existing cluster.
 
+## Container Image
+
+The same `Dockerfile` produces images for either OSS Ray (KubeRay / bare
+metal) or Anyscale services. The only difference is the **base image**,
+which is exposed as a build argument:
+
+| Target | `BASE_IMAGE` |
+|--------|--------------|
+| OSS Ray (default) | `rayproject/ray:nightly-py312-cu128` |
+| Anyscale services | `anyscale/ray:nightly-py312-cu128` |
+
+**Build for OSS Ray (default):**
+
+```bash
+docker build --platform linux/amd64 -t pd-vllm-rocm .
+```
+
+**Build for Anyscale:**
+
+```bash
+docker build --platform linux/amd64 \
+  --build-arg BASE_IMAGE=anyscale/ray:nightly-py312-cu128 \
+  -t pd-vllm-rocm .
+```
+
+Push the resulting image to a registry your Ray cluster (or Anyscale cloud)
+can pull from before deploying.
+
+See [Anyscale base images](https://docs.anyscale.com/reference/base-images)
+for the list of supported `anyscale/ray:*` tags.
+
 ## Quick Start
 
 ### Option A: Run on Anyscale
@@ -19,17 +50,10 @@ If you're new to Anyscale, start here:
 - [Anyscale getting started](https://docs.anyscale.com/get-started)
 - [Deploy Anyscale on Kubernetes](https://docs.anyscale.com/admin/cloud/kubernetes)
 - [Anyscale Service API](https://docs.anyscale.com/reference/service-api)
-- [Anyscale base images](https://docs.anyscale.com/reference/base-images)
 
-**1. Build the container image:**
-
-```bash
-IMAGE="pd-vllm-rocm:latest"
-docker build --platform linux/amd64 -t $IMAGE .
-```
-
-Push `$IMAGE` to a registry your Anyscale cloud can pull from before the
-deploy step below.
+**1. Build and push the image** using the Anyscale `BASE_IMAGE` (see
+[Container Image](#container-image) above). Set `IMAGE` to the registry URL
+your Anyscale cloud can pull from.
 
 **2. Create a compute config on Anyscale:**
 
@@ -50,23 +74,28 @@ anyscale service deploy -f serve_configs/pd/qwen235b_2p1d_tp8.yaml \
 
 **4. Benchmark:**
 
+Launch the Ray LLM benchmark CLI in interactive mode against your service URL:
+
 ```bash
 python -m ray.llm._internal.serve.benchmark -i \
   -u YOUR_SERVICE_URL -m qwen3-235b --tokenizer Qwen/Qwen3-235B-A22B-FP8
 ```
 
+Interactive mode commands:
+
+```
+> workload --isl 16000 --osl 1024 --hit-rate 0.0 --num-turns 1
+> rate 3
+> status          # wait for inflight to stabilize
+> measure 50      # collect 50 measurements
+> save results/my_experiment.json
+```
+
 ### Option B: Run on OSS Ray (KubeRay or bare metal)
 
-**1. Build the container image:**
-
-The Dockerfile exposes `BASE_IMAGE` as a build argument. Pass the OSS Ray
-base instead of the Anyscale default:
-
-```bash
-docker build \
-  --build-arg BASE_IMAGE=rayproject/ray:nightly-py312-cu128 \
-  -t pd-vllm-rocm .
-```
+**1. Build the image** with the default OSS Ray `BASE_IMAGE` (see
+[Container Image](#container-image) above) and push it to a registry your
+cluster can pull from.
 
 **2. Start a Ray cluster:**
 
@@ -118,6 +147,8 @@ ray serve deploy serve_configs/pd/qwen235b_2p1d_tp8.yaml
 
 **4. Benchmark:**
 
+Launch the Ray LLM benchmark CLI in interactive mode against your local cluster:
+
 ```bash
 python -m ray.llm._internal.serve.benchmark -i \
   -u http://localhost:8000 -m qwen3-235b --tokenizer Qwen/Qwen3-235B-A22B-FP8
@@ -137,22 +168,25 @@ Interactive mode commands:
 
 ### PD Disaggregated
 
-| Config | P:D Ratio | GPUs | Use Case |
-|--------|-----------|------|----------|
-| `pd/qwen235b_1p1d_tp8.yaml` | 1P:1D | 16 | Minimum PD setup |
-| `pd/qwen235b_2p1d_tp8.yaml` | 2P:1D | 24 | Long input, short output |
-| `pd/qwen235b_1p2d_tp8.yaml` | 1P:2D | 24 | Moderate output |
-| `pd/qwen235b_1p2d_tp8_cache.yaml` | 1P:2D | 24 | Multi-turn with prefix caching |
-| `pd/qwen235b_1p3d_tp8.yaml` | 1P:3D | 32 | Long output |
-| `pd/qwen235b_2p2d_tp8.yaml` | 2P:2D | 32 | Balanced |
+| Config | Model | P:D Ratio | GPUs | Use Case |
+|--------|-------|-----------|------|----------|
+| `pd/qwen235b_1p1d_tp8.yaml` | Qwen3-235B | 1P:1D | 16 | Minimum PD setup |
+| `pd/qwen235b_2p1d_tp8.yaml` | Qwen3-235B | 2P:1D | 24 | Long input, short output |
+| `pd/qwen235b_1p2d_tp8.yaml` | Qwen3-235B | 1P:2D | 24 | Moderate output |
+| `pd/qwen235b_1p2d_tp8_cache.yaml` | Qwen3-235B | 1P:2D | 24 | Multi-turn with prefix caching |
+| `pd/qwen235b_1p3d_tp8.yaml` | Qwen3-235B | 1P:3D | 32 | Long output |
+| `pd/qwen235b_2p2d_tp8.yaml` | Qwen3-235B | 2P:2D | 32 | Balanced |
+| `pd/deepseek_v3_1p1d_tp8.yaml` | DeepSeek-V3 | 1P:1D | 16 | DeepSeek baseline (prefix caching) |
 
 ### Aggregated Baselines
 
-| Config | Replicas | GPUs |
-|--------|----------|------|
-| `agg/qwen235b_2agg_tp8.yaml` | 2 | 16 |
-| `agg/qwen235b_3agg_tp8.yaml` | 3 | 24 |
-| `agg/qwen235b_4agg_tp8.yaml` | 4 | 32 |
+| Config | Model | Replicas | GPUs |
+|--------|-------|----------|------|
+| `agg/qwen235b_2agg_tp8.yaml` | Qwen3-235B | 2 | 16 |
+| `agg/qwen235b_3agg_tp8.yaml` | Qwen3-235B | 3 | 24 |
+| `agg/qwen235b_3agg_tp8_cache.yaml` | Qwen3-235B | 3 | 24 |
+| `agg/qwen235b_4agg_tp8.yaml` | Qwen3-235B | 4 | 32 |
+| `agg/deepseek_v3_2agg_tp8.yaml` | DeepSeek-V3 | 2 | 16 |
 
 ## Software Stack
 

@@ -1,21 +1,21 @@
 # =============================================================================
 # vLLM 0.18 with ROCm 7.0 + RIXL/UCX for prefill-decode disaggregation
 # =============================================================================
-# Anyscale/Ray base + prebuilt vLLM ROCm wheel + RIXL/UCX built from source.
+# Ray base + prebuilt vLLM ROCm wheel + RIXL/UCX built from source.
 #
-# Build (Anyscale base, default):
+# Build (OSS Ray base, default):
 #   docker build --platform linux/amd64 -t pd-vllm-rocm .
 #
-# Build (OSS Ray base):
+# Build (Anyscale base, for Anyscale services):
 #   docker build --platform linux/amd64 \
-#     --build-arg BASE_IMAGE=rayproject/ray:nightly-py312-cu128 \
+#     --build-arg BASE_IMAGE=anyscale/ray:nightly-py312-cu128 \
 #     -t pd-vllm-rocm .
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Build arguments
 # -----------------------------------------------------------------------------
-ARG BASE_IMAGE=anyscale/ray:nightly-py312-cu128
+ARG BASE_IMAGE=rayproject/ray:nightly-py312-cu128
 ARG VLLM_VERSION=0.18.0
 ARG VLLM_ROCM_VARIANT=rocm700
 

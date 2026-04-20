@@ -1,0 +1,29 @@
+# Aggregated — DeepSeek-V3-0324 (2 replicas, TP8/EP8)
+# 16 GPUs (2 nodes). Agg baseline for 16-GPU comparisons with prefix caching.
+
+applications:
+- name: aggregated-deepseek-v3
+  import_path: ray.serve.llm:build_openai_app
+  route_prefix: /
+  args:
+    llm_configs:
+    - model_loading_config:
+        model_id: deepseek-v3
+        model_source: deepseek-ai/DeepSeek-V3-0324
+      engine_kwargs:
+        tensor_parallel_size: 8
+        enable_expert_parallel: true
+        enable_prefix_caching: true
+        max_model_len: 16384
+        gpu_memory_utilization: 0.7
+        kv_cache_dtype: fp8
+        load_format: dummy
+        max_num_batched_tokens: 32768
+      deployment_config:
+        num_replicas: 2
+        logging_config:
+          enable_access_log: false
+    ingress_deployment_config:
+      autoscaling_config:
+        min_replicas: 16
+        max_replicas: 16

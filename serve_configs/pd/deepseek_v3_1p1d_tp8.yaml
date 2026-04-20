@@ -1,0 +1,57 @@
+# PD — DeepSeek-V3-0324 (1P1D, TP8/EP8)
+# 16 GPUs (2 nodes). Prefill caching enabled for warm-cache workloads.
+
+applications:
+- name: pd-deepseek-v3
+  import_path: ray.serve.llm:build_pd_openai_app
+  route_prefix: /
+  args:
+    prefill_config:
+      model_loading_config:
+        model_id: deepseek-v3
+        model_source: deepseek-ai/DeepSeek-V3-0324
+      engine_kwargs:
+        tensor_parallel_size: 8
+        enable_expert_parallel: true
+        enable_prefix_caching: true
+        max_model_len: 16384
+        gpu_memory_utilization: 0.7
+        kv_cache_dtype: fp8
+        load_format: dummy
+        enforce_eager: true
+        max_num_batched_tokens: 32768
+        kv_transfer_config:
+          kv_connector: NixlConnector
+          kv_role: kv_both
+      deployment_config:
+        num_replicas: 1
+        max_ongoing_requests: 1000000
+        logging_config:
+          enable_access_log: false
+    decode_config:
+      model_loading_config:
+        model_id: deepseek-v3
+        model_source: deepseek-ai/DeepSeek-V3-0324
+      engine_kwargs:
+        tensor_parallel_size: 8
+        enable_expert_parallel: true
+        enable_prefix_caching: true
+        max_model_len: 16384
+        gpu_memory_utilization: 0.7
+        kv_cache_dtype: fp8
+        load_format: dummy
+        max_num_batched_tokens: 32768
+        compilation_config:
+          cudagraph_mode: FULL_DECODE_ONLY
+        kv_transfer_config:
+          kv_connector: NixlConnector
+          kv_role: kv_both
+      deployment_config:
+        num_replicas: 1
+        max_ongoing_requests: 1000000
+        logging_config:
+          enable_access_log: false
+    ingress_deployment_config:
+      num_replicas: 12
+      logging_config:
+        enable_access_log: false
